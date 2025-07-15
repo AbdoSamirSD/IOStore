@@ -25,7 +25,7 @@ class RegisterController extends Controller
             'phone' => 'required|string|max:15',
             'address' => 'nullable|string|max:255',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'commercial_register' => 'mimes:jpeg,png,jpg,pdf|max:2048|required',
+            'commercial_register' => 'mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         $vendor = Vendor::create([
