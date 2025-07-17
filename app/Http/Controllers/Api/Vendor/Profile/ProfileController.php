@@ -54,7 +54,7 @@ class ProfileController extends Controller
 
         $vendor = $request->user();
 
-        if (!Hash::check($request->current_password, $vendor->password)) {
+        if (!Hash::check($request->current_password, $vendor->getAuthPassword())) {
             return response()->json(['message' => 'Current password is incorrect.'], 422);
         }
 

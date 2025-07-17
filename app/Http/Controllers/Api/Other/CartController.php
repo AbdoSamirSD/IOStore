@@ -12,7 +12,7 @@ class CartController extends Controller
     public function index()
     {
         $cartItems = auth()->user()->cartItems()->with('product')->get();
-        $deliveryPrice = 10;
+        $deliveryPrice = 50; // Fixed delivery price
 
         // Calculate total price including delivery
         $totalPrice = $cartItems->sum(function ($item) {
@@ -34,6 +34,9 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
         $product = Product::find($request->product_id);
+        if(!$product){
+            return response()->json(['message' => 'product not found'], 404);
+        }
         if ($product->stock < $request->quantity) {
             return response()->json(['message' => 'Not enough stock'], 403);
         }
