@@ -107,4 +107,14 @@ class Product extends Model implements TranslatableContract
     {
         return $this->stock > 0;
     }
+
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function specifications()
+    {
+        return $this->hasMany(ProductSpecificationValue::class)->with('specification');
+    }
 }

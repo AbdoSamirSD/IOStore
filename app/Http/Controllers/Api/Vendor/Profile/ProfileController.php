@@ -26,9 +26,10 @@ class ProfileController extends Controller
             'phone' => 'string|max:15',
             'address' => 'nullable|string|max:255',
             'profile_image' => 'image|mimes:jpeg,png,jpg|max:10240',
+            'expected_delivery_time' => 'nullable|integer|min:1|max:7', // 1 day to 7 days
         ]);
 
-        $data = $request->only(['full_name', 'store_name', 'phone', 'address']);
+        $data = $request->only(['full_name', 'store_name', 'phone', 'address', 'expected_delivery_time']);
 
         if ($request->hasFile('profile_image')) {
             if ($vendor->profile_image && file_exists(storage_path('app/public/' . $vendor->profile_image))) {
@@ -79,5 +80,18 @@ class ProfileController extends Controller
         $vendor->delete();
 
         return response()->json(['message' => 'Profile deleted successfully.']);
+    }
+
+    public function updateStatus(Request $request){
+        $vendor = $request->user();
+        $request->validate([
+            'status' => 'required|boolean',
+        ]);
+        $vendor->update(['status' => $request->store_status]);
+
+        return response()->json([
+            'message' => 'Store status updated successfully.',
+            'status' => $vendor->store_status,
+        ]);
     }
 }

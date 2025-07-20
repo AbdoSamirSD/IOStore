@@ -36,4 +36,9 @@ class MainCategory extends Model implements TranslatableContract
     {
         return $value ? asset($value) : null;
     }
+
+    public function specifications()
+    {
+        return $this->belongsToMany(Specification::class, 'category_specifications');
+    }
 }

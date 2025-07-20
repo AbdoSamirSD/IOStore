@@ -34,9 +34,6 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
         $product = Product::find($request->product_id);
-        if(!$product){
-            return response()->json(['message' => 'product not found'], 404);
-        }
         if ($product->stock < $request->quantity) {
             return response()->json(['message' => 'Not enough stock'], 403);
         }

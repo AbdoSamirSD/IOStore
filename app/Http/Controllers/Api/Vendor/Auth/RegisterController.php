@@ -42,7 +42,7 @@ class RegisterController extends Controller
             // 'commission_value' => $request->commission_value ?? 0.00, // Default commission value
             'status' => false, // Default status
         ]);
-
+        
         return response()->json([
             'message' => __('Rigester Successfully'),
             'vendor' => $vendor,

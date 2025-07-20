@@ -20,9 +20,6 @@ return new class extends Migration {
             $table->decimal('discount', 10, 2)->nullable();
             $table->decimal('total_cost', 10, 2);
             $table->foreignId('promo_code_id')->nullable()->constrained()->onDelete('set null');
-
-            $table->enum('status', ['preparing', 'on the way', 'delivered', 'canceled'])->default('preparing');
-
             $table->timestamps();
         });
     }

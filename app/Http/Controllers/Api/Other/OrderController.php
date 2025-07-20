@@ -27,6 +27,11 @@ class OrderController extends Controller
         $subTotal = 0;
         foreach ($request->items as $item) {
             $product = Product::findOrFail($item['product_id']);
+
+            if ($product->vendor->status === false) {
+                return response()->json(['message' => 'المتجر الخاص بالمنتج مغلق حاليًا ولا يمكن تنفيذ الطلب.'], 403);
+            }
+
             $subTotal += $product->price * $item['quantity'];
         }
 
