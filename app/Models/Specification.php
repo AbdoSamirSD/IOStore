@@ -13,13 +13,13 @@ class Specification extends Model
         'options' => 'array',
     ];
 
-    public function categories()
+    public function maincategories()
     {
         return $this->belongsToMany(MainCategory::class, 'category_specifications');
     }
 
-    public function productValues()
+    public function values()
     {
-        return $this->hasMany(ProductSpecificationValue::class);
+        return $this->hasMany(SpecificationValue::class);
     }
 }

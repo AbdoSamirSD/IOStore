@@ -4,14 +4,42 @@ namespace App\Http\Controllers\Api\Vendor\Products;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\MainCategory;
+use App\Models\Product;
+use App\Models\Specification;
+use App\Models\ImageItem;
+use Validator;
+use App\Models\SpecificationValue;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        //show all products for the vendor
         $vendor = $request->user();
-        $products = $vendor->products()->with(['category', 'specifications.specification'])->paginate(20);
+        $products = $vendor->products()
+            ->with(['translations', 'images',])
+            ->get()
+            ->map(function ($product) {return[
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'price' => $product->price,
+                'discount' => $product->discount,
+                'stock' => $product->stock,
+                'images' => $product->images->map(function ($image) {
+                    return asset('storage/' . $image->path);
+                }),
+                'is_active' => $product->is_active,
+            ];
+        });
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'message' => 'No products found.',
+                'data' => [],
+            ], 404);
+        }
+
         return response()->json([
             'message' => 'Products retrieved successfully.',
             'data' => $products,
@@ -22,75 +50,122 @@ class ProductController extends Controller
     {
         //show a single product by id
         $vendor = $request->user();
-        $product = $vendor->products()->with(['category', 'specifications.specification', 'images'])->findOrFail($id);
+        $product = $vendor->products()
+            ->with(['translations', 'images', 'mainCategory', 'specificationsValues.specification'])
+            ->find($id);
+
+        if (!$product) {
+            return response()->json([
+                'message' => 'Product not found.',
+            ], 404);
+        }
+
         return response()->json([
             'message' => 'Product retrieved successfully.',
-            'data' => $product,
+            'data' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'price' => $product->price,
+                'discount' => $product->discount,
+                'stock' => $product->stock,
+                'status' => $product->status,
+                'is_active' => $product->is_active,
+                'main_category' => $product->mainCategory ? $product->mainCategory->name : null,
+                'images' => $product->images->map(function ($image) {
+                    return asset('storage/' . $image->path);
+                }),
+                'specifications' => $product->specificationsValues->map(function ($spec) {
+                    return [
+                        'specification' => $spec->specification->name,
+                        'value' => $spec->value,
+                    ];
+                }),
+            ]
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'main_category_id' => 'required|exists:main_categories,id',
             'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'details' => 'nullable|string|max:2000',
             'price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
-            'stock' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'color' => 'required',
+            'discount' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
             'images' => 'array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'specifications' => 'array',
-            'specifications.*.specification_id' => 'required|exists:specifications,id',
-            'specifications.*.value' => 'required|string|max:255',
-
+            'specifications.*.name' => 'string|exists:specifications,name',
+            'specifications.*.value' => 'string|max:255|exists:specification_values,value',
         ]);
 
+        if ($validator->fails()){
+            return response()->json(
+                [
+                    'message' => 'Validator Error',
+                    'errors' => $validator -> errors(),
+                ], 422
+            );
+        }
+
+        \Log::info('✅ Step 1: Validation passed');
+
         $vendor = $request->user();
+        \Log::info('✅ Step 2: Got vendor', ['vendor_id' => $vendor->id]);
 
         $product = $vendor->products()->create([
-            'vendor_id' => $vendor->id,
             'main_category_id' => $request->main_category_id,
             'sub_category_id' => $request->sub_category_id,
             'price' => $request->price,
             'supplier_price' => $request->supplier_price ?? null,
             'discount' => $request->discount ?? 0,
             'stock' => $request->stock,
-            'colors' => $request->color,
-            'status' => 'pending',
-            'is_active' => 'active', // Default to active
         ]);
+        \Log::info('✅ Step 3: Product created', ['product_id' => $product->id]);
 
+
+        // Create translations
         $product->translations()->create([
-            'locale' => 'ar',
+            'locale' => 'en', 
             'name' => $request->name,
             'description' => $request->description,
-            'details' => $request->details ?? null,
         ]);
+        \Log::info('✅ Step 4: Product inserted successfully', ['product_id' => $product->id]);
 
+
+        // Handle images
         if ($request->has('images')) {
             foreach ($request->images as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
+                $product->images()->create(['image_path' => $image->store('products', 'public')]);
             }
         }
+        \Log::info('✅ Step 5: Images processed', ['product_id' => $product->id]);
 
-        if ($request->has('specifications')) {
-            foreach ($request->specifications as $spec) {
-                $product->specifications()->create([
-                    'specification_id' => $spec['specification_id'],
-                    'value' => $spec['value'],
+        // Handle specifications
+        foreach($request->specifications as $spec){
+
+            $specification = Specification::where('name', $spec['name'])->first();
+            $specValue = SpecificationValue::where('value', $spec['value'])->first();
+
+            if ($specification && $specValue) {
+                $product->specificationsValues()->attach($specValue->id, [
+                    'specification_id' => $specification->id,
                 ]);
+            }else {
+                return response()->json([
+                    'message' => 'Invalid specification or value.',
+                ], 422);
             }
         }
+        \Log::info('✅ Step 6: Specifications processed', ['product_id' => $product->id]);
 
         return response()->json([
             'message' => 'Product created successfully.',
-            'data' => $product->load(['images', 'specifications.specification']),
-        ], 201);
+            'data' => $product->load(['translations', 'images', 'specifications.specification']),
+        ]);
     }
 
     public function update(Request $request, $id)

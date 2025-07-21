@@ -39,6 +39,6 @@ class MainCategory extends Model implements TranslatableContract
 
     public function specifications()
     {
-        return $this->belongsToMany(Specification::class, 'category_specifications');
+        return $this->belongsToMany(Specification::class, 'category_specifications', 'category_id', 'specification_id');
     }
 }

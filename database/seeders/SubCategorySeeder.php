@@ -4,6 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\MainCategory;
 use App\Models\SubCategory;
+use App\Models\SubCategoryTranslation;
+use App\Models\MainCategoryTranslation;
+use Illuminate\Support\Facades\DB;
 use Faker\Generator;
 use Faker\Provider\Image;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,56 +20,69 @@ class SubCategorySeeder extends Seeder
     public function run(): void
     {
         $subCategories = [
-            'عناية شخصية' => [
-                'صوفي',
-                'فينوس',
-                'الويز',
-                'برايفت',
-                'حرير',
-                'مولبيد',
-                'دراكون',
-                'ازهي',
-                'ستار فيل',
-                'نيفيا',
-                'ايفا'
+            'Laptops' => ['HP', 'Dell', 'Lenovo', 'Apple', 'Asus', 'Acer'],
+            'PCs' => ['HP', 'Dell', 'Lenovo', 'Apple', 'Asus', 'Acer'],
+            'Accessories' => [
+                'Keyboards',
+                'Mice',
+                'Monitors',
+                'Headphones',
+                'Webcams',
+                'Speakers',
+                'Cables',
+                'Chargers',
+                'External Hard Drives',
+                'USB Hubs',
+                'Docking Stations',
+                'Microphones',
+                'Laptop Stands',
+                'Mouse Pads',
+                'bags',
+                'Adapters',
+                'Cooling Pads',
+                'Screen Protectors',
+                'Flash Drives',
             ],
-            'سكين كير' => [
-                'الوكيتا',
-                'ستار فيل',
-                'اليجون',
-                'ديزار',
-                'انفينتي',
-                'ارجنتو',
-                'بيزلين',
-                'تريزيمي',
-                'جليسوليد',
-                'كير اند مور',
-                'لونا',
-                'نيفيا',
-                'كولاجرا',
-                'غارنية',
-                'شان',
-                'بوباي'
-            ],
-            'بيبي كير' => [
-                'بيندولين',
-                'بابلز',
-                'ابيكس',
-                'الجو',
-                'لاكي بيبي',
-                'نايس بيبي',
-                'فلورو',
-                'نونو'
+            'Cameras' => [
+                'DSLR',
+                'Mirrorless',
+                'Point and Shoot',
+                'Action Cameras',
+                'Camcorders',
+                '360 Cameras',
+                'Camera Lenses',
+                'Tripods',
+                'Gimbals',
+                'Camera Bags',
+                'Memory Cards',
+                'Camera Accessories',
             ],
         ];
-        foreach ($subCategories as $mainCategoryAr => $subcatList) {
-            $mainCategory = MainCategory::whereTranslationLike('name', $mainCategoryAr)->first();
 
-            foreach ($subcatList as $subcatAr) {
-                $mainCategory->subCategories()->create([
-                    'ar' => ['name' => $subcatAr],
-                    'en' => ['name' => $subcatAr],
-                ]);
+        foreach ($subCategories as $mainCategoryName => $subs) {
+            $mainCategoryTranslation = MainCategoryTranslation::where('name', $mainCategoryName)
+                ->where('locale', 'en')
+                ->first();
+
+            if (!$mainCategoryTranslation) continue;
+
+            foreach ($subs as $subName) {
+                $existing = SubCategoryTranslation::where('name', $subName)
+                    ->where('locale', 'en')
+                    ->first();
+
+                if (!$existing) {
+                    $subCategory = SubCategory::create([
+                        'main_category_id' => $mainCategoryTranslation->main_category_id,
+                        'icon' => null,
+                    ]);
+
+                    SubCategoryTranslation::create([
+                        'sub_category_id' => $subCategory->id,
+                        'locale' => 'en',
+                        'name' => $subName,
+                    ]);
+                }
             }
         }
     }

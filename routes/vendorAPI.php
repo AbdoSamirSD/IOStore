@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Vendor\Auth\RegisterController;
+use App\Http\Controllers\Api\Vendor\Products\CategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Vendor\Auth\AuthController;
 use App\Http\Controllers\Api\Vendor\Dashboard\DashboardController;
@@ -29,14 +30,18 @@ Route::prefix('vendor')->group(function () {
 
         // Store Status
             Route::put('store-status', [ProfileController::class, 'updateStatus']);
+        
+        // Categories
+            Route::get('/categories', [CategoryController::class, 'categories']);
+            Route::get('categories/{id}', [CategoryController::class, 'specifications']);
 
         // Products
             Route::get('products', [ProductController::class, 'index']);
             Route::get('product/show/{id}', [ProductController::class, 'show']);
-            Route::post('products/add', [ProductController::class, 'store']);
-            Route::put('products/update/{id}', [ProductController::class, 'update']);
-            Route::delete('products/delete/{id}', [ProductController::class, 'destroy']);
-            Route::put('products/toggle/{id}', [ProductController::class, 'toggle']);
+            Route::post('product/add', [ProductController::class, 'store']);
+            Route::put('product/update/{id}', [ProductController::class, 'update']);
+            Route::delete('product/delete/{id}', [ProductController::class, 'destroy']);
+            Route::put('product/toggle/{id}', [ProductController::class, 'toggle']);
 
         // Orders
             Route::get('vendor/orders/list', [OrderController::class, 'index']);

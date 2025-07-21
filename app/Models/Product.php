@@ -12,7 +12,6 @@ class Product extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'colors',
         'price',
         'supplier_price',
         'stock',
@@ -25,7 +24,6 @@ class Product extends Model implements TranslatableContract
     protected $hidden = [
         'created_at',
         'updated_at',
-        'translations',
     ];
 
     protected $appends = [
@@ -113,8 +111,10 @@ class Product extends Model implements TranslatableContract
         return $this->belongsTo(Vendor::class);
     }
 
-    public function specifications()
+    public function specificationsValues()
     {
-        return $this->hasMany(ProductSpecificationValue::class)->with('specification');
+        return $this->belongsToMany(SpecificationValue::class, 'product_specification_values')
+            ->withPivot('value')
+            ->withTimestamps();
     }
 }

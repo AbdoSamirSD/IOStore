@@ -12,7 +12,6 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->json('colors')->nullable();
             $table->double('price');
             $table->double('supplier_price')->nullable();
             $table->integer('stock')->default(0);

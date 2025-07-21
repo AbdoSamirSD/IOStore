@@ -11,7 +11,7 @@ class ProductTranslation extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'description', 'details', 'instructions'];
+    protected $fillable = ['name', 'description', 'details', 'instructions', 'locale'];
 
     public function getInstructionsAttribute($value)
     {

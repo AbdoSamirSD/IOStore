@@ -28,6 +28,15 @@ class RegisterController extends Controller
             'commercial_register' => 'nullable|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
+        $profileImagePath = $request->hasFile('profile_image')
+            ? $request->file('profile_image')->store('profile_images', 'public')
+            : null;
+
+        $commercialRegisterPath = $request->hasFile('commercial_register')
+            ? $request->file('commercial_register')->store('commercial_registers', 'public')
+            : null;
+
+        // إنشاء التاجر
         $vendor = Vendor::create([
             'full_name' => $request->full_name,
             'store_name' => $request->store_name,
@@ -35,12 +44,10 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'address' => $request->address,
-            'commercial_register' => $request->file('commercial_register')->store('commercial_registers', 'public'),
-            'profile_image' => $request->file('profile_image') ? $request->file('profile_image')->store('profile_images', 'public') : null,
-            'is_active' => 'pending', // Default status for new vendors
-            // 'commission_type' => $request->type ?? 'fixed', // Default type
-            // 'commission_value' => $request->commission_value ?? 0.00, // Default commission value
-            'status' => false, // Default status
+            'profile_image' => $profileImagePath,
+            'commercial_register' => $commercialRegisterPath,
+            'is_active' => 'pending',
+            'status' => false,
         ]);
         
         return response()->json([
