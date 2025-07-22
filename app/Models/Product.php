@@ -110,11 +110,8 @@ class Product extends Model implements TranslatableContract
     {
         return $this->belongsTo(Vendor::class);
     }
-
     public function specificationsValues()
     {
-        return $this->belongsToMany(SpecificationValue::class, 'product_specification_values')
-            ->withPivot('value')
-            ->withTimestamps();
+        return $this->hasMany(ProductSpecificationValue::class);
     }
 }

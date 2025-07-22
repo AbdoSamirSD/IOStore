@@ -148,11 +148,11 @@ class ProductController extends Controller
         foreach($request->specifications as $spec){
 
             $specification = Specification::where('name', $spec['name'])->first();
-            $specValue = SpecificationValue::where('value', $spec['value'])->first();
 
-            if ($specification && $specValue) {
-                $product->specificationsValues()->attach($specValue->id, [
+            if ($specification) {
+                $product->specificationsValues()->create([
                     'specification_id' => $specification->id,
+                    'value' => $spec['value'],
                 ]);
             }else {
                 return response()->json([
@@ -164,7 +164,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully.',
-            'data' => $product->load(['translations', 'images', 'specifications.specification']),
+            'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
         ]);
     }
 
