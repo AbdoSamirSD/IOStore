@@ -44,10 +44,10 @@ Route::prefix('vendor')->group(function () {
             Route::put('product/toggle/{id}', [ProductController::class, 'toggle']);
 
         // Orders
-            Route::get('vendor/orders/list', [OrderController::class, 'index']);
-            Route::get('vendor/orders/status/{status}', [OrderController::class, 'filterByStatus']);
-            Route::get('vendor/orders/{order_id}', [OrderController::class, 'showOrder']);
-            Route::put('vendor/orders/{order_id}/status', [OrderController::class, 'updateStatus']);
+            Route::get('orders/list', [OrderController::class, 'index']);
+            Route::get('orders/status/{status}', [OrderController::class, 'filterByStatus']);
+            Route::get('orders/{order_id}', [OrderController::class, 'showOrder']);
+            Route::put('orders/{order_id}/status', [OrderController::class, 'updateStatus']);
         
             // // Notifications
         //     Route::get('notifications', [NotificationController::class, 'index']);
