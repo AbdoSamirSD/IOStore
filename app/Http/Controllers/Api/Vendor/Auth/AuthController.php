@@ -25,7 +25,7 @@ class AuthController extends Controller
         
         if (!Hash::check($request->password, $vendor->password)) {
             return response()->json([
-                'message' => __('Login fail'),
+                'message' => __('Login fail, Password not correct'),
             ], 401);
         }
         
