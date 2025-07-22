@@ -39,7 +39,7 @@ Route::prefix('vendor')->group(function () {
             Route::get('products', [ProductController::class, 'index']);
             Route::get('product/show/{id}', [ProductController::class, 'show']);
             Route::post('product/add', [ProductController::class, 'store']);
-            Route::put('product/update/{id}', [ProductController::class, 'update']);
+            Route::post('product/update/{id}', [ProductController::class, 'update']);
             Route::delete('product/delete/{id}', [ProductController::class, 'destroy']);
             Route::put('product/toggle/{id}', [ProductController::class, 'toggle']);
 

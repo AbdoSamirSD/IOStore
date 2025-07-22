@@ -9,15 +9,19 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
+    public function login(Request $request){
         
         $request->validate([
-            'email' => 'required|email|string|exists:vendors,email',
+            'email' => 'required|email|string',
             'password' => 'required|string',
         ]);
 
-        $vendor = Vendor::where('email', $request->email)->firstOrFail();
+        $vendor = Vendor::where('email', $request->email)->first();
+        if (!$vendor) {
+            return response()->json([
+                'message' => __('This mail is incorrect'),
+            ], 404);
+        }
         
         if (!Hash::check($request->password, $vendor->password)) {
             return response()->json([

@@ -10,6 +10,7 @@ use App\Models\Specification;
 use App\Models\ImageItem;
 use Validator;
 use App\Models\SpecificationValue;
+use App\Models\Order;
 
 class ProductController extends Controller
 {
@@ -89,7 +90,6 @@ class ProductController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'main_category_id' => 'required|exists:main_categories,id',
-            'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'price' => 'required|numeric|min:0',
@@ -111,21 +111,14 @@ class ProductController extends Controller
             );
         }
 
-        \Log::info('✅ Step 1: Validation passed');
-
         $vendor = $request->user();
-        \Log::info('✅ Step 2: Got vendor', ['vendor_id' => $vendor->id]);
-
         $product = $vendor->products()->create([
             'main_category_id' => $request->main_category_id,
-            'sub_category_id' => $request->sub_category_id,
             'price' => $request->price,
             'supplier_price' => $request->supplier_price ?? null,
             'discount' => $request->discount ?? 0,
             'stock' => $request->stock,
         ]);
-        \Log::info('✅ Step 3: Product created', ['product_id' => $product->id]);
-
 
         // Create translations
         $product->translations()->create([
@@ -133,8 +126,6 @@ class ProductController extends Controller
             'name' => $request->name,
             'description' => $request->description,
         ]);
-        \Log::info('✅ Step 4: Product inserted successfully', ['product_id' => $product->id]);
-
 
         // Handle images
         if ($request->has('images')) {
@@ -142,7 +133,6 @@ class ProductController extends Controller
                 $product->images()->create(['image_path' => $image->store('products', 'public')]);
             }
         }
-        \Log::info('✅ Step 5: Images processed', ['product_id' => $product->id]);
 
         // Handle specifications
         foreach($request->specifications as $spec){
@@ -160,7 +150,6 @@ class ProductController extends Controller
                 ], 422);
             }
         }
-        \Log::info('✅ Step 6: Specifications processed', ['product_id' => $product->id]);
 
         return response()->json([
             'message' => 'Product created successfully.',
@@ -168,65 +157,81 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
+    public function update(Request $request, $id){
+        $validator = Validator::make($request->all(), [
             'main_category_id' => 'required|exists:main_categories,id',
-            'sub_category_id' => 'required|exists:sub_categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'details' => 'nullable|string|max:2000',
             'price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
-            'stock' => 'required|integer|min:0',
-            'color' => 'required',
+            'discount' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
             'images' => 'array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'specifications' => 'array',
-            'specifications.*.specification_id' => 'required|exists:specifications,id',
-            'specifications.*.value' => 'required|string|max:255',
+            'specifications.*.name' => 'string|exists:specifications,name',
+            'specifications.*.value' => 'string|max:255|exists:specification_values,value',
         ]);
+
+        if ($validator->fails()){
+            return response()->json(
+                [
+                    'message' => 'Validator Error',
+                    'errors' => $validator -> errors(),
+                ], 422
+            );
+        }
 
         $vendor = $request->user();
         $product = $vendor->products()->findOrFail($id);
+
+        // Update product details
         $product->update([
             'main_category_id' => $request->main_category_id,
-            'sub_category_id' => $request->sub_category_id,
             'price' => $request->price,
             'supplier_price' => $request->supplier_price ?? null,
             'discount' => $request->discount ?? 0,
             'stock' => $request->stock,
-            'colors' => $request->color,
         ]);
 
-        if ($request->has('name') || $request->has('description') || $request->has('details')) {
-            $product->translations()->where('locale', 'ar')->update([
+        // Update translations
+        $product->translations()->updateOrCreate(
+            ['locale' => 'en'], 
+            [
                 'name' => $request->name,
                 'description' => $request->description,
-                'details' => $request->details,
-            ]);
-        }
+            ]
+        );
 
+        // Handle images
         if ($request->has('images')) {
-            $product->images()->delete(); // Clear existing images
+            $product->images()->delete();
             foreach ($request->images as $image) {
-                $product->images()->create(['path' => $image->store('products', 'public')]);
+                $product->images()->create(['image_path' => $image->store('products', 'public')]);
             }
         }
 
+        // Handle specifications
         if ($request->has('specifications')) {
-            $product->specifications()->delete(); // Clear existing specifications
-            foreach ($request->specifications as $spec) {
-                $product->specifications()->create([
-                    'specification_id' => $spec['specification_id'],
-                    'value' => $spec['value'],
-                ]);
+            foreach($request->specifications as $spec){
+                $specification = Specification::where('name', $spec['name'])->first();
+
+                if ($specification) {
+                    $product->specificationsValues()->updateOrCreate(
+                        ['specification_id' => $specification->id],
+                        ['value' => $spec['value']]
+                    );
+                } else {
+                    return response()->json([
+                        'message' => 'Invalid specification or value.',
+                    ], 422);
+                }
             }
         }
+        
 
         return response()->json([
             'message' => 'Product updated successfully.',
-            'data' => $product->load(['images', 'specifications.specification']),
+            'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
         ]);
     }
 
@@ -234,12 +239,22 @@ class ProductController extends Controller
     {
         $vendor = auth()->user();
         $product = $vendor->products()->findOrFail($id);
-        $product->images()->delete(); // Delete associated images
-        $product->specifications()->delete(); // Delete associated specifications
-        $product->translations()->delete(); // Delete translations
-        $product->favorites()->delete(); // Delete associated favorites
-        $product->cartItems()->delete(); // Delete associated cart items
-        $product->orders()->delete(); // Delete associated orders
+
+        $isInActiveOrder = Order::whereHas('items', function ($query) use ($product) {
+            $query->where('product_id', $product->id);
+        })->whereNotIn('status', ['pending', 'accepted', 'preparing', 'on_the_way', 'delivered'])->exists();
+
+        if ($isInActiveOrder) {
+            return response()->json([
+                'message' => 'Cannot delete product with active orders.',
+            ], 422);
+        }
+
+        $product->images()->delete();
+        $product->specificationsValues()->delete();
+        $product->translations()->delete();
+        $product->favorites()->delete();
+        $product->cartItems()->delete();
         $product->delete();
 
         return response()->json([
@@ -250,7 +265,13 @@ class ProductController extends Controller
     public function toggle($id)
     {
         $vendor = auth()->user();
-        $product = $vendor->products()->findOrFail($id);
+        $product = $vendor->products()->find($id);
+
+        if(!$product){
+            return response()->json([
+                'message' => 'Product not found.',
+            ], 404);
+        }
         
         // Toggle the product status between 'active' and 'inactive'
         $product->is_active = $product->is_active === 'active' ? 'inactive' : 'active';
@@ -258,7 +279,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product status updated successfully.',
-            'data' => $product,
+            'data' => $product->is_active,
         ]);  
     }
 }
