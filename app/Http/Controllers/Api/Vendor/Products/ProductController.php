@@ -14,8 +14,7 @@ use App\Models\Order;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
-    {
+    public function index(Request $request){
         $vendor = $request->user();
         $products = $vendor->products()
             ->with(['translations', 'images',])
@@ -184,7 +183,12 @@ class ProductController extends Controller
         }
 
         $vendor = $request->user();
-        $product = $vendor->products()->findOrFail($id);
+        $product = $vendor->products()->find($id);
+        if (!$product){
+            return response()->json([
+                'message' => 'product not found'
+            ], 404);
+        }
 
         // Update product details
         $product->update([
@@ -242,7 +246,12 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $vendor = auth()->user();
-        $product = $vendor->products()->findOrFail($id);
+        $product = $vendor->products()->find($id);
+        if (!$product){
+            return response()->json([
+                'messsage' => 'product not found'
+            ], 404);
+        }
 
         $isInActiveOrder = Order::whereHas('items', function ($query) use ($product) {
             $query->where('product_id', $product->id);
