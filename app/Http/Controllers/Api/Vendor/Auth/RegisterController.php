@@ -29,14 +29,13 @@ class RegisterController extends Controller
         ]);
 
         $profileImagePath = $request->hasFile('profile_image')
-            ? $request->file('profile_image')->store('profile_images', 'public')
-            : null;
+          ? asset('storage/' . $request->file('profile_image')->store('profile_images', 'public'))
+          : null;
 
         $commercialRegisterPath = $request->hasFile('commercial_register')
-            ? $request->file('commercial_register')->store('commercial_registers', 'public')
+            ? asset('storage/' . $request->file('commercial_register')->store('commercial_registers', 'public'))
             : null;
 
-        // إنشاء التاجر
         $vendor = Vendor::create([
             'full_name' => $request->full_name,
             'store_name' => $request->store_name,

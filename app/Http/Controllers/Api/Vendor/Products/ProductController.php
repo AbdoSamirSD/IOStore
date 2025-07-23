@@ -130,7 +130,9 @@ class ProductController extends Controller
         // Handle images
         if ($request->has('images')) {
             foreach ($request->images as $image) {
-                $product->images()->create(['image_path' => $image->store('products', 'public')]);
+                $Path = $image->store('products', 'public');
+                $FullPath = asset('storage/' . $Path);
+                $product->images()->create(['image_path' => $FullPath]);
             }
         }
 
@@ -206,7 +208,9 @@ class ProductController extends Controller
         if ($request->has('images')) {
             $product->images()->delete();
             foreach ($request->images as $image) {
-                $product->images()->create(['image_path' => $image->store('products', 'public')]);
+                $Path = $image->store('products', 'public');
+                $FullPath = asset('storage/' . $Path);
+                $product->images()->create(['image_path' => $FullPath]);
             }
         }
 
@@ -262,8 +266,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function toggle($id)
-    {
+    public function toggle($id){
         $vendor = auth()->user();
         $product = $vendor->products()->find($id);
 
