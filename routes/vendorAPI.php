@@ -51,9 +51,6 @@ Route::prefix('vendor')->group(function () {
         
             // // Notifications
         //     Route::get('notifications', [NotificationController::class, 'index']);
-
-        // // Meta (Dropdown Lists)
-        //     Route::get('meta', [MetaController::class, 'index']);
     });
 });
 
