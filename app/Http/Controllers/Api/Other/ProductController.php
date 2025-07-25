@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
 
     
-    //         ->when($subCateg// public function products(SearchProductsRequest $request)
+    // public function products(SearchProductsRequest $request)
     // {
     //     $mainCategoryId = $request->input('main_category_id');
     //     $subCategoryId = $request->input('sub_category_id');
@@ -24,7 +24,7 @@ class ProductController extends Controller
     //     $products = Product::query()
     //         ->when($mainCategoryId, function ($query, $mainCategoryId) {
     //             return $query->where('main_category_id', $mainCategoryId);
-    //         })oryId, function ($query, $subCategoryId) {
+    //         })->when($subCategoryId, function ($query, $subCategoryId) {
     //             return $query->where('sub_category_id', $subCategoryId);
     //         })
     //         ->when($name, function ($query, $name) {
@@ -155,6 +155,7 @@ class ProductController extends Controller
                 return [
                     'id' => $review->id,
                     'rating' => $review->rating,
+                    
                     'comment' => $review->comment,
                     'user' => [
                         'id' => $review->user->id,
@@ -162,7 +163,9 @@ class ProductController extends Controller
                     ],
                     'created_at' => $review->created_at,
                 ];
-            })
+            }),
+            'average_rating' => round($product->reviews()->avg('rating'), 1),
+            'rating_count' => $product->reviews()->count(),
         ], 200);
     }
 

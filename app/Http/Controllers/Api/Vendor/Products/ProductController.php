@@ -16,6 +16,12 @@ class ProductController extends Controller
 {
     public function index(Request $request){
         $vendor = $request->user();
+        if(!$vendor){
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
         $products = $vendor->products()
             ->with(['translations', 'images',])
             ->get()
@@ -50,6 +56,11 @@ class ProductController extends Controller
     {
         //show a single product by id
         $vendor = $request->user();
+        if(!$vendor){
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        }
         $product = $vendor->products()
             ->with(['translations', 'images', 'mainCategory', 'specificationsValues.specification'])
             ->find($id);
@@ -111,6 +122,11 @@ class ProductController extends Controller
         }
 
         $vendor = $request->user();
+        if(!$vendor){
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        }
         $product = $vendor->products()->create([
             'main_category_id' => $request->main_category_id,
             'price' => $request->price,

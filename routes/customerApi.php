@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Other\OrderController;
 use App\Http\Controllers\Api\Other\ProductController;
 use App\Http\Controllers\Api\Other\ProfileController;
 use App\Http\Controllers\Api\Other\PromoCodeController;
+use App\Http\Controllers\Api\Other\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -54,6 +55,7 @@ Route::group([
 
     // banners
     Route::get('/banners/{type}', [BannerController::class, 'getBannersByType']);
+
 });
 Route::group([
     'middleware' => ['auth:sanctum'],
@@ -75,6 +77,11 @@ Route::group([
     Route::get('orders', [OrderController::class, 'index']);
     Route::get('orders/{id}', [OrderController::class, 'show']);
     Route::post('orders/{id}/cancel', [OrderController::class, 'cancel']);
+
+    // reviews
+    Route::post('products/{id}/add/reviews', [ReviewController::class, 'addReview']);
+    Route::put('products/{id}/update/reviews/{reviewId}', [ReviewController::class, 'updateReview']);
+    Route::delete('products/{id}/delete/reviews/{reviewId}', [ReviewController::class, 'deleteReview']);
 
     // promo code
     Route::post('/promo-code/validate', [PromoCodeController::class, 'validatePromoCode']);
