@@ -84,7 +84,9 @@ class ProductController extends Controller
                 'price' => $product->price,
                 'discount' => $product->discount,
                 'stock' => $product->stock,
-                'images' => $product->images->pluck('image_path'),
+                'images' => $product->images->map(function ($image) {
+                    return asset('storage/' . $image->image_path);
+                }),
             ];
         });
 
