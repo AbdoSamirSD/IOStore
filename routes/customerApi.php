@@ -34,18 +34,24 @@ Route::group([
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 });
+
+
 Route::group([
     'middleware' => ['guest'],
 ], function () {
     // categories
-    Route::get('/categories', [CategoryController::class, 'categories']);
     Route::get('/main-categories', [CategoryController::class, 'mainCategories']);
-    Route::get('/sub-categories', [CategoryController::class, 'subCategories']);
+
     // products
     Route::get('/products', [ProductController::class, 'products']);
+    Route::get('/product/{id}', [ProductController::class, 'show']);
+    Route::get('/product/{id}/reviews', [ProductController::class, 'reviews']);
+    Route::get('/product/{id}/related', [ProductController::class, 'relatedProducts']);
     Route::get('/new-products', [ProductController::class, 'newProducts']);
     Route::get('/popular-products', [ProductController::class, 'popularProducts']);
     Route::get('/hot-offer-products', [ProductController::class, 'hotOfferProducts']);
+    Route::get('/search-products', [ProductController::class, 'searchProducts']);
+
     // banners
     Route::get('/banners/{type}', [BannerController::class, 'getBannersByType']);
 });

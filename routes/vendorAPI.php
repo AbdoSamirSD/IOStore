@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\Vendor\Auth\AuthController;
 use App\Http\Controllers\Api\Vendor\Dashboard\DashboardController;
 use App\Http\Controllers\Api\Vendor\Profile\ProfileController;
 use App\Http\Controllers\Api\Vendor\Products\ProductController;
-use App\Http\Controllers\Api\Vendor\Products\OrderController;
+use App\Http\Controllers\Api\Vendor\Products\VendorOrderController;
 
 
 Route::prefix('vendor')->group(function () {
@@ -44,18 +44,17 @@ Route::prefix('vendor')->group(function () {
             Route::put('product/toggle/{id}', [ProductController::class, 'toggle']);
 
         // Orders
-            Route::get('orders/list', [OrderController::class, 'index']);
-            Route::get('orders/status/{status}', [OrderController::class, 'filterByStatus']);
-            Route::get('orders/{order_id}', [OrderController::class, 'showOrder']);
-            Route::put('orders/{order_id}/status', [OrderController::class, 'updateStatus']);
+            Route::get('orders/list', [VendorOrderController::class, 'index']);
+            Route::get('orders/getallstatuses', [VendorOrderController::class, 'getAllStatuses']);
+            Route::get('order/status/{status}', [VendorOrderController::class, 'filterByStatus']);
+            Route::get('order/{order_id}', [VendorOrderController::class, 'showOrder']);
+            Route::put('order/{order_id}/status', [VendorOrderController::class, 'updateStatus']);
+            Route::get('orders/statistics', [VendorOrderController::class, 'statistics']);
         
-            // // Notifications
-        //     Route::get('notifications', [NotificationController::class, 'index']);
-    });
-});
-
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/vendor/test', function (Request $request) {
-        return auth()->user(); // Will still return vendor
+        // Notifications
+            // Route::get('notifications', [NotificationController::class, 'index']);
+            // Route::get('notifications/{id}', [NotificationController::class, 'show']);
+            // Route::post('notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
+            // Route::post('notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead']);
     });
 });

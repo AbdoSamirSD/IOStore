@@ -28,9 +28,7 @@ class Product extends Model implements TranslatableContract
 
     protected $appends = [
         'images',
-        'is_favorite',
-        'is_cart_item',
-        'is_available',
+
     ];
 
     // relations
@@ -113,5 +111,10 @@ class Product extends Model implements TranslatableContract
     public function specificationsValues()
     {
         return $this->hasMany(ProductSpecificationValue::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
     }
 }

@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.1",
         "astrotomic/laravel-translatable": "^11.14",
+        "berkayk/onesignal-laravel": "^2.4",
         "guzzlehttp/guzzle": "^7.2",
         "laravel-notification-channels/fcm": "^3.2",
         "laravel/framework": "^10.10",

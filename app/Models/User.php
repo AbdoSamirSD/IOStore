@@ -104,4 +104,9 @@ class User extends Authenticatable
             $this->attributes['address'] = json_encode($value);
         }
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }
