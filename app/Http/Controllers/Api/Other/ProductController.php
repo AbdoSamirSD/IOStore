@@ -201,8 +201,13 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluck('image_path'),
-                ];
+                    'images' => $product->images->map(function ($spec) {
+                        return [
+                            'specification' => $spec->specification->name,
+                            'value' => $spec->value,
+                        ];
+                    }),
+                    ];
             })
         ], 200);
     }
@@ -228,7 +233,12 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluck('image_path'),
+                    'images' => $product->images->pluckmap(function ($spec) {
+                        return [
+                            'specification' => $spec->specification->name,
+                            'value' => $spec->value,
+                        ];
+                    }),
                 ];
             })
         ], 200);
@@ -255,7 +265,12 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluck('image_path'),
+                    'images' => $product->images->map(function ($spec) {
+                        return [
+                            'specification' => $spec->specification->name,
+                            'value' => $spec->value,
+                        ];
+                    }),
                 ];
             })
         ], 200);
@@ -282,7 +297,12 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluck('image_path'),
+                    'images' => $product->images->map(function ($spec) {
+                        return [
+                            'specification' => $spec->specification->name,
+                            'value' => $spec->value,
+                        ];
+                    }),
                 ];
             })
         ], 200);
