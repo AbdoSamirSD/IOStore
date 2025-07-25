@@ -67,8 +67,7 @@ class ProductController extends Controller
         $products = Product::with(['images', 'translations'])
             ->where('is_active', 'active')
             ->where('status', 'approved')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->orderBy('created_at', 'desc');
 
         if(!$products->count()) {
             return response()->json(['message' => 'No products found'], 404);
@@ -90,9 +89,12 @@ class ProductController extends Controller
             ];
         });
 
+        $paginated = $products->toArray();
+        $paginated['data'] = $filteredProducts;
+
         return response()->json([
             'message' => 'products retrieved successfully',
-            'products' => $filteredProducts
+            'products' => $paginated
         ], 200);
     }
 
