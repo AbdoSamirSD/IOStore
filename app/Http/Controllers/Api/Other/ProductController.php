@@ -63,18 +63,23 @@ class ProductController extends Controller
     //     return response()->json($products);
     // }
 
-    public function products(){
-        $products = Product::with(['images', 'translations'])
+    public function products(Request $request)
+    {
+        $locale = 'en';
+        $perPage = $request->get('per_page', 10); // يمكن تحديد عدد النتائج لكل صفحة
+
+        $productsQuery = Product::with(['images', 'translations'])
             ->where('is_active', 'active')
             ->where('status', 'approved')
             ->orderBy('created_at', 'desc');
 
-        if(!$products->count()) {
+        $products = $productsQuery->paginate($perPage);
+
+        if ($products->isEmpty()) {
             return response()->json(['message' => 'No products found'], 404);
         }
 
-        $locale = 'en';
-        $filteredProducts = $products->map(function ($product) use($locale){
+        $filteredProducts = $products->getCollection()->map(function ($product) use ($locale) {
             $translation = $product->translations->where('locale', $locale)->first();
             return [
                 'id' => $product->id,
@@ -89,12 +94,11 @@ class ProductController extends Controller
             ];
         });
 
-        $paginated = $products->toArray();
-        $paginated['data'] = $filteredProducts;
+        $products->setCollection($filteredProducts);
 
         return response()->json([
             'message' => 'products retrieved successfully',
-            'products' => $paginated
+            'products' => $products
         ], 200);
     }
 
