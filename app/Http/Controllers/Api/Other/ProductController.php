@@ -166,7 +166,7 @@ class ProductController extends Controller
                     'created_at' => $review->created_at,
                 ];
             }),
-            'average_rating' => round($product->reviews()->avg('rating'), 1),
+            'average_rating' => round($product->reviews->avg('rating'), 1),
             'rating_count' => $product->reviews()->count(),
         ], 200);
     }
@@ -201,13 +201,11 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->map(function ($spec) {
-                        return [
-                            'specification' => $spec->specification->name,
-                            'value' => $spec->value,
-                        ];
+                    'images' => $product->images->map(function ($image) {
+                        return asset('storage/' . $image->image_path);
                     }),
-                    ];
+
+                ];
             })
         ], 200);
     }
@@ -233,11 +231,8 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluckmap(function ($spec) {
-                        return [
-                            'specification' => $spec->specification->name,
-                            'value' => $spec->value,
-                        ];
+                    'images' => $product->images->map(function ($image) {
+                        return asset('storage/' . $image->image_path);
                     }),
                 ];
             })
@@ -265,11 +260,8 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->map(function ($spec) {
-                        return [
-                            'specification' => $spec->specification->name,
-                            'value' => $spec->value,
-                        ];
+                    'images' => $product->images->map(function ($image) {
+                        return asset('storage/' . $image->image_path);
                     }),
                 ];
             })
@@ -297,11 +289,8 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->map(function ($spec) {
-                        return [
-                            'specification' => $spec->specification->name,
-                            'value' => $spec->value,
-                        ];
+                    'images' => $product->images->map(function ($image) {
+                        return asset('storage/' . $image->image_path);
                     }),
                 ];
             })
@@ -349,7 +338,9 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'price' => $product->price,
                     'discount' => $product->discount,
-                    'images' => $product->images->pluck('image_path'),
+                    'images' => $product->images->map(function ($image) {
+                        return asset('storage/' . $image->image_path);
+                    }),
                 ];
             })
         ], 200);
