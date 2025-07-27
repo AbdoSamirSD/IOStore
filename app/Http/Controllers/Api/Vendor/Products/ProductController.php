@@ -108,8 +108,8 @@ class ProductController extends Controller
             'images' => 'array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'specifications' => 'array',
-            'specifications.*.name' => 'string|exists:specifications,name',
-            'specifications.*.value' => 'string|max:255|exists:specification_values,value',
+            'specifications.*.name' => 'required_with:specifications|string|exists:specifications,name',
+            'specifications.*.value' => 'required_with:specifications|string|max:255|exists:specification_values,value',
         ]);
 
         if ($validator->fails()){
@@ -172,6 +172,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully.',
+            // 'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
         ]);
     }
 
