@@ -62,7 +62,7 @@ class Product extends Model implements TranslatableContract
     // attributes
     public function getDiscountAttribute($value)
     {
-        return $value / 100;
+        return $value;
     }
     public function getImagesAttribute()
     {

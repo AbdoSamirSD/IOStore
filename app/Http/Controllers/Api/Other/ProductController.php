@@ -328,8 +328,7 @@ class ProductController extends Controller
                 ->orWhere('price', 'like', "%{$query}%")
                 ->orWhere('discount', 'like', "%{$query}%")
                 ->orWhere('id', 'like', "%{$query}%");
-                })
-            ->paginate(20);
+            });
 
         if ($products->isEmpty()) {
             return response()->json(['message' => 'No products found'], 404);

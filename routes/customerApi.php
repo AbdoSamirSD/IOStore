@@ -71,6 +71,7 @@ Route::group([
     Route::delete('/cart', [CartController::class, 'destroyAll']);
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+    
 
     // orders
     Route::post('orders', [OrderController::class, 'store']);
