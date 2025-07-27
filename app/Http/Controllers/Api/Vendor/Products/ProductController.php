@@ -104,7 +104,7 @@ class ProductController extends Controller
             'description' => 'required|string|max:1000',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
-            'stock' => 'nullable|integer|min:0',
+            'stock' => 'required|integer|min:0',
             'images' => 'array',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             'specifications' => 'array',
@@ -152,19 +152,21 @@ class ProductController extends Controller
         }
 
         // Handle specifications
-        foreach($request->specifications as $spec){
-
-            $specification = Specification::where('name', $spec['name'])->first();
-
-            if ($specification) {
-                $product->specificationsValues()->create([
-                    'specification_id' => $specification->id,
-                    'value' => $spec['value'],
-                ]);
-            }else {
-                return response()->json([
-                    'message' => 'Invalid specification or value.',
-                ], 422);
+        if ($request->has('specifications')){
+            foreach($request->specifications as $spec){
+    
+                $specification = Specification::where('name', $spec['name'])->first();
+    
+                if ($specification) {
+                    $product->specificationsValues()->create([
+                        'specification_id' => $specification->id,
+                        'value' => $spec['value'],
+                    ]);
+                }else {
+                    return response()->json([
+                        'message' => 'Invalid specification or value.',
+                    ], 422);
+                }
             }
         }
 
