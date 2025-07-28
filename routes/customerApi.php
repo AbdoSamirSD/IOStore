@@ -90,7 +90,7 @@ Route::group([
 
     // profile
     Route::post('/profile', [ProfileController::class, 'update']);
-    Route::post('/profile/address', [ProfileController::class, 'updateAddress']);
+    Route::post('/profile/address', action: [ProfileController::class, 'updateAddress']);
 
     // notifications
     Route::group(['prefix' => 'notifications'], function () {
