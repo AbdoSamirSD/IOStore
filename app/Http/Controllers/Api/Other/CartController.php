@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Validator;
 
 class CartController extends Controller
 {
@@ -69,10 +70,14 @@ class CartController extends Controller
     
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
         $product = Product::find($request->product_id);
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
@@ -91,6 +96,18 @@ class CartController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'unauthenticated'], 401);
+        }
         $cartItem = CartItem::find($id);
         if (!$cartItem){
             return response()->json([
