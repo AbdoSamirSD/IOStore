@@ -21,7 +21,6 @@ class ProductController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
-
         $products = $vendor->products()
             ->with(['translations', 'images',])
             ->get()
@@ -33,7 +32,7 @@ class ProductController extends Controller
                 'discount' => $product->discount,
                 'stock' => $product->stock,
                 'images' => $product->images->map(function ($image) {
-                    return asset('storage/' . $image->path);
+                    return asset('storage/' . $image->image_path);
                 }),
                 'is_active' => $product->is_active,
             ];
