@@ -77,7 +77,7 @@ Route::group([
     Route::post('orders', [OrderController::class, 'store']);
     Route::get('orders', [OrderController::class, 'index']);
     Route::get('orders/{id}', [OrderController::class, 'show']);
-    Route::post('orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::delete('orders/{id}', [OrderController::class, 'cancel']);
 
     // reviews
     Route::post('products/{id}/add/reviews', [ReviewController::class, 'addReview']);
