@@ -8,8 +8,6 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\PromoCode;
 use Illuminate\Http\Request;
-use Validator;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -19,13 +17,17 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'promo_code_id' => 'nullable|exists:promo_codes,id',
+            'promo_code' => 'nullable|exists:promo_codes,code',
         ]);
 
         $userId = auth()->id();
         if (!$userId) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
+        $promoCode = PromoCode::where('code', $request->input('promo_code'))->first();
+
+        $promoCodeId = $promoCode?->id;
 
         $items = collect($validated['items']);
         $productIds = $items->pluck('product_id')->unique();
@@ -65,24 +67,15 @@ class OrderController extends Controller
         }
 
         // Promo Code Handling
-        $promoCodeId = $request->input('promo_code_id');
-        $promoCode = null;
-
-        if ($promoCodeId) {
-            $promoCode = PromoCode::where('id', $promoCodeId)
-                ->where('status', 'active')
-                ->whereDate('start_date', '<=', now())
-                ->whereDate('end_date', '>=', now())
-                ->first();
-
-            if (!$promoCode) {
+        if ($promoCode) {
+            if (!$promoCode || !$promoCode->status || !now()->between($promoCode->start_date, $promoCode->end_date)) {
                 return response()->json(['message' => 'Promo code is not valid'], 422);
             }
 
-            if (!is_null($promoCode->max_uses) && $promoCode->uses >= $promoCode->max_uses) {
+             if (!is_null($promoCode->max_uses) && $promoCode->uses >= $promoCode->max_uses) {
                 return response()->json(['message' => 'Promo code usage limit reached'], 422);
             }
-
+            
             $promoCodeDiscount = $promoCode->type === 'fixed'
                 ? $promoCode->value
                 : ($subTotal * $promoCode->value) / 100;
@@ -229,7 +222,7 @@ class OrderController extends Controller
             ], 401);
         }
         $order = Order::findOrFail($id);
-        if (!in_array($order->status, ['on_the_way', 'canceled']) && $order->user_id == $authUserId) {
+        if (!in_array($order->status, ['on_the_way', 'cancelled']) && $order->user_id == $authUserId) {
             $order->update(['status' => 'cancelled']);
             $order->refresh();
             return response()->json([
