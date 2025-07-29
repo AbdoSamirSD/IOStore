@@ -83,7 +83,7 @@ class ProductController extends Controller
                 'is_active' => $product->is_active,
                 'main_category' => $product->mainCategory ? $product->mainCategory->name : null,
                 'images' => $product->images->map(function ($image) {
-                    return asset('storage/' . $image->path);
+                    return asset('storage/' . $image->image_path);
                 }),
                 'specifications' => $product->specificationsValues->map(function ($spec) {
                     return [
@@ -145,8 +145,7 @@ class ProductController extends Controller
         if ($request->has('images')) {
             foreach ($request->images as $image) {
                 $Path = $image->store('products', 'public');
-                $FullPath = asset('storage/' . $Path);
-                $product->images()->create(['image_path' => $FullPath]);
+                $product->images()->create(['image_path' => $Path]);
             }
         }
 
@@ -230,8 +229,7 @@ class ProductController extends Controller
             $product->images()->delete();
             foreach ($request->images as $image) {
                 $Path = $image->store('products', 'public');
-                $FullPath = asset('storage/' . $Path);
-                $product->images()->create(['image_path' => $FullPath]);
+                $product->images()->create(['image_path' => $Path]);
             }
         }
 
