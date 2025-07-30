@@ -165,29 +165,33 @@ class VendorOrderController extends Controller
             ], 401);
         }
 
+        $query = Order::where('vendor_id', $vendor->id)
+        ->with('items');
+
         if ($request->has(['from', 'to'])){
 
             $from = $request->input('from', now()->startOfMonth());
             $to = $request->input('to', now()->endOfMonth());
     
-            $statistics = Order::where('vendor_id', $vendor->id)
-                ->whereBetween('created_at', [$from, $to])
-                ->selectRaw('status, COUNT(*) as count, SUM(total_amount) as total_amount, SUM(discount) as total_discount')
-                ->groupBy('status')
-                ->get();
-        }else{
-            $statistics = Order::where('vendor_id', $vendor->id)
-                ->selectRaw('status, COUNT(*) as count')
-                ->withCount('items')
-                ->withSum('items as total_amount', 'price')
-                ->withSum('items as total_quantity', 'quantity')
-                ->selectRaw('status, COUNT(*) as count')
-                ->selectRaw('SUM(items.price) as total_amount')
-                ->selectRaw('SUM(items.quantity) as total_quantity')
-                ->groupBy('status')
-                ->get();
+            $query->whereBetween('created_at', [$from, $to]);
+
+
         }
 
+        $orders = $query->get();
+
+        $statistics = $orders->groupBy('status')->map(function ($ordersGroup) {
+            $count = $ordersGroup->count();
+            $totalAmount = $ordersGroup->flatMap->items->sum('price');
+            $totalQuantity = $ordersGroup->flatMap->items->sum('quantity');
+
+            return[
+                'count' => $count,
+                'total_amount' => $totalAmount,
+                'total_quantity' => $totalQuantity,
+            ];
+        })->toArray();
+        
         return response()->json([
             'message' => 'Order statistics retrieved successfully.',
             'data' => $statistics,
