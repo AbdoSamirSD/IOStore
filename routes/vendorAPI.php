@@ -44,9 +44,9 @@ Route::prefix('vendor')->group(function () {
             Route::put('product/toggle/{id}', [ProductController::class, 'toggle']);
 
         // Orders
-            Route::get('orders/list', [VendorOrderController::class, 'index']);
+            Route::get('orders/', [VendorOrderController::class, 'index']);
             Route::get('orders/getallstatuses', [VendorOrderController::class, 'getAllStatuses']);
-            Route::get('order/status/{status}', [VendorOrderController::class, 'filterByStatus']);
+            Route::get('orders/{status}', [VendorOrderController::class, 'filterByStatus']);
             Route::get('order/{order_id}', [VendorOrderController::class, 'showOrder']);
             Route::put('order/{order_id}/status', [VendorOrderController::class, 'updateStatus']);
             Route::get('orders/statistics', [VendorOrderController::class, 'statistics']);
