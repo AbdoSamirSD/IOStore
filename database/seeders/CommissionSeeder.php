@@ -15,7 +15,7 @@ class CommissionSeeder extends Seeder
     public function run(): void
     {
         $vendorId = 4; // Assuming you want to set the commission for vendor with ID 1
-        $categoryId = 1; // Assuming you want to set the commission for category with ID 1
+        $categoryId = 3; // Assuming you want to set the commission for category with ID 1
         
         $plan = CommissionPlan::create([
             'vendor_id' => $vendorId,
@@ -25,9 +25,9 @@ class CommissionSeeder extends Seeder
         ]);
 
         $range = [
-            ['min_value' => 0, 'max_value' => 1000, 'percentage' => 5,],
-            ['min_value' => 1001, 'max_value' => 5000, 'percentage' => 7,],
-            ['min_value' => 5001, 'max_value' => 10000, 'percentage' => 10,],
+            ['min_value' => 0, 'max_value' => 100, 'percentage' => 10,],
+            ['min_value' => 101, 'max_value' => 500, 'percentage' => 15,],
+            ['min_value' => 501, 'max_value' => 1000, 'percentage' => 20,],
         ];
 
         foreach ($range as $r) {
