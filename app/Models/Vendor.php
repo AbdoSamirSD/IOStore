@@ -57,4 +57,10 @@ class Vendor extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
+
+    public function commissionPlans(){
+        return $this->hasMany(CommissionPlan::class);
+    }
+
+    
 }

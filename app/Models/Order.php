@@ -18,7 +18,8 @@ class Order extends Model
         'discount',
         'total_cost',
         'promo_code_id',
-        'status'
+        'status',
+        'order_commission',
     ];
     protected $casts = [
         'sub_total' => 'float',

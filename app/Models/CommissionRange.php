@@ -8,4 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class CommissionRange extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'commission_plan_id',
+        'min_value',
+        'max_value',
+        'percentage',
+    ];
+
+    public function commissionPlan()
+    {
+        return $this->belongsTo(CommissionPlan::class);
+    }
 }
