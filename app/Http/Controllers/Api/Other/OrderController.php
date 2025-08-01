@@ -8,12 +8,10 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\PromoCode;
 use App\Models\CommissionPlan;
-use App\Models\Vendor;
-use App\Models\MainCategory;
-use App\Models\CommissionRange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -144,6 +142,13 @@ class OrderController extends Controller
                     $promoCode->increment('uses');
                 }
 
+                $order->statusLogs()->create([
+                    'source' => 'user',
+                    'updated_by' => $userId,
+                    'status' => $order->status,
+                    'status_changed_at' => now(),
+                ]);
+
                 $order->load('items.product');
                 return response()->json([
                     'message' => 'Order Created Successfully.',
@@ -234,10 +239,10 @@ class OrderController extends Controller
 
         return response()->json([
             'id' => $order->id,
-            'order_nember' => $order->order_number,
+            'order_number' => $order->order_number,
             'status' => $order->status,
             'sub_total' => $order->sub_total,
-            'deliver_fee' => $order->delivery_fee,
+            'delivery_fee' => $order->delivery_fee,
             'discount' => $order->discount,
             'total_cost' => $order->total_cost,
             'promo_code' => $order->promoCode ? $order->promoCode->code : null,
@@ -265,8 +270,19 @@ class OrderController extends Controller
             ], 401);
         }
         $order = Order::findOrFail($id);
+        if (!$order) {
+            return response()->json([
+                'message' => "Order {$id} not found.",
+            ], 404);
+        }
         if (!in_array($order->status, ['on_the_way', 'cancelled']) && $order->user_id == $authUserId) {
             $order->update(['status' => 'cancelled']);
+            $order->statusLogs()->create([
+                'source' => 'user',
+                'updated_by' => $authUserId,
+                'status' => $order->status,
+                'status_changed_at' => now(),
+            ]);
             $order->refresh();
             return response()->json([
                 'message' => 'Order cancelled successfully.',
@@ -276,5 +292,52 @@ class OrderController extends Controller
                 'message' => 'Cannot cancel this order.'],
                 403);
         }
+    }
+
+    public function orderStatusLogs($orderId){
+
+        $validator = Validator::make(['order_id' => $orderId], [
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid order ID.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $authUserId = auth()->id();
+        if (!$authUserId) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $order = Order::findOrFail($orderId);
+        if ($order->user_id !== $authUserId) {
+            return response()->json([
+                'message' => 'You do not have permission to view this order status log.'
+            ], 403);
+        }
+
+        // Assuming you have a method to get the status log
+        $statusLogs = $order->statusLogs()->orderBy('created_at', 'desc')->get();
+        if ($statusLogs->isEmpty()) {
+            return response()->json([
+                'message' => 'No status logs found for this order.'
+            ], 404);
+        }
+        return response()->json([
+            'message' => 'Order status logs retrieved successfully.',
+            'data' => $statusLogs->map(function ($log, $authUserId) {
+                return [
+                    'id' => $log->id,
+                    'source' => $log->source,
+                    'updated_by' => $log->updated_by,
+                    'status' => $log->status,
+                    'created_at' => $log->created_at->toDateTimeString(),
+                ];
+            })
+        ], 200);
     }
 }

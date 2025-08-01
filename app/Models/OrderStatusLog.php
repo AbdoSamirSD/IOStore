@@ -11,6 +11,8 @@ class OrderStatusLog extends Model
 
     protected $fillable = [
         'order_id',
+        'source',
+        'updated_by',
         'status',
         'status_changed_at',
     ];

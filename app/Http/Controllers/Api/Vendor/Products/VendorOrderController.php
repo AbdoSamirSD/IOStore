@@ -80,7 +80,7 @@ class VendorOrderController extends Controller
     {
         $validator = Validator::make(
             $request->all(),[
-                'status' => 'required|string|in:preparing,accepted,on_the_way,delivered,cancelled',
+                'status' => 'required|string|in:pending,accepted,preparing,completed,on_the_way,delivered,cancelled',
             ]
         );
 
@@ -100,16 +100,17 @@ class VendorOrderController extends Controller
             ], 401);
         }
 
+        
         $order = Order::where('vendor_id', $vendor->id)
-            ->where('id', $order_id)
-            ->first();
-
+        ->where('id', $order_id)
+        ->first();
+        
         if (!$order) {
             return response()->json([
                 'message' => "Order {$order_id} not found.",
             ], 404);
         }
-
+ 
         // Check if the status is already set to the requested status
         if ($order->status === $request->input('status')) {
             return response()->json([
@@ -123,10 +124,19 @@ class VendorOrderController extends Controller
             ], 400);
         }
 
+        $lastLog = $order->statusLogs()->latest()->first();
+        if ($lastLog && $lastLog->status === $request->input('status')) {
+            return response()->json([
+                'message' => "Order {$order_id} is already in the status: {$lastLog->status}.",
+            ]);
+        }
+
         $order->status = $request->input('status');
         $order->save();
 
         $order->statusLogs()->create([
+            'source' => 'vendor',
+            'updated_by' => $vendor->id,
             'status' => $order->status,
             'status_changed_at' => now(),
         ]);

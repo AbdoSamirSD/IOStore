@@ -78,6 +78,7 @@ Route::group([
     Route::get('orders', [OrderController::class, 'index']);
     Route::get('orders/{id}', [OrderController::class, 'show']);
     Route::delete('orders/{id}', [OrderController::class, 'cancel']);
+    Route::get('orders/{id}/status-logs', [OrderController::class, 'orderStatusLogs']);
 
     // reviews
     Route::post('products/{id}/add/reviews', [ReviewController::class, 'addReview']);
