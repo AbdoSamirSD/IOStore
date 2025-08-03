@@ -111,6 +111,23 @@ class WalletController extends Controller
         ]);
     }
 
+    public function transactionTypes()
+    {
+        $vendor = auth()->user();
+        if (!$vendor) {
+            return response()->json([
+                'message' => 'Vendor not authenticated.',
+            ], 401);
+        }
+
+        $types = $vendor->wallet->transactions()->distinct('type')->pluck('type');
+
+        return response()->json([
+            'message' => 'Transaction types retrieved successfully.',
+            'data' => $types,
+        ]);
+    }
+
     public function requestWithdraw(Request $request)
     {
         $vendor = auth()->user();
