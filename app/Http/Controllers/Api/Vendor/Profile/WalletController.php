@@ -162,7 +162,7 @@ class WalletController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'withdraw request created successfully, wait admin to accept',
+            'message' => 'withdraw request created successfully, wait admin to accept "pending"',
             'withdraw_amount' => $amount,
         ], 201);
     }
