@@ -101,8 +101,8 @@ class WalletController extends Controller
         }
 
         $transactions = $vendor->wallet->transactions()
-            ->where('type', $type)
-            ->paginate(20);
+        
+            ->where('type', $type);
 
         return response()->json([
             'message' => 'Transactions filtered by type retrieved successfully.',
