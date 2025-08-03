@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             MainCategorySeeder::class,
             SubCategorySeeder::class,
             CommissionSeeder::class,
+            WalletSeeder::class,
+            WalletTransactionsSeeder::class,
             // ProductsSeeder::class,
             // BannerSeeder::class,
         ]);
