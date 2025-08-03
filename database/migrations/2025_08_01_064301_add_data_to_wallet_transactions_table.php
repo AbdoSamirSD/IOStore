@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('wallet_transactions', function (Blueprint $table) {
-            $table->foreignId('wallet_id')->constrained('wallet')->onDelete('cascade')->after('id');
+            $table->foreignId('wallet_id')->constrained('wallets')->onDelete('cascade')->after('id');
             $table->enum('type', ['order_earning', 'order_refund', 'order_cancellation', 'order_chargeback', 'order_payment', 'withdraw'])->after('wallet_id');
             $table->decimal('amount', 10, 2)->after('type');
             $table->string('description')->nullable()->after('amount');
