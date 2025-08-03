@@ -8,10 +8,12 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\PromoCode;
 use App\Models\CommissionPlan;
+use App\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Vendor;
 
 class OrderController extends Controller
 {
@@ -149,6 +151,26 @@ class OrderController extends Controller
                     'status_changed_at' => now(),
                 ]);
 
+                $vendor = Vendor::with('Wallet')->find($vendorId);
+                if ($vendor && $vendor->wallet) {
+                    $wallet = $vendor->wallet;
+                    $wallet->vendor_id = $vendorId;
+                    $wallet->increment('pending_balance', $totalCost - $totalCommission);
+                    $wallet->increment('total_earnings', $totalCost- $totalCommission);
+                    $wallet->increment('total_commission', $totalCommission);
+                    $wallet->save();
+
+                    WalletTransaction::create([
+                        'wallet_id' => $wallet->id,
+                        'amount' => $totalCost - $totalCommission,
+                        'type' => 'order_earning',
+                        'description' => 'Order payment received',
+                        'direction' => 'credit',
+                        'order_id' => $order->id,
+                        'status' => 'pending',
+                        'created_at' => now(),
+                    ])->save();
+                }
                 $order->load('items.product');
                 return response()->json([
                     'message' => 'Order Created Successfully.',

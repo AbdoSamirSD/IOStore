@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('vendor_id')->constrained('vendors')->onDelete('cascade');
             $table->decimal('balance', 10, 2)->default(0.00);
             $table->decimal('pending_balance', 10, 2)->default(0.00);
-            $table->decimal('withdrawn_amount', 10, 2)->default(0.00);
             $table->decimal('total_earnings', 10, 2)->default(0.00);
             $table->decimal('total_withdrawn', 10, 2)->default(0.00);
             $table->decimal('total_refunded', 10, 2)->default(0.00);

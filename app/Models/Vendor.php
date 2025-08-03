@@ -62,5 +62,9 @@ class Vendor extends Authenticatable
         return $this->hasMany(CommissionPlan::class);
     }
 
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
     
 }

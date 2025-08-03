@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Vendor\Dashboard\DashboardController;
 use App\Http\Controllers\Api\Vendor\Profile\ProfileController;
 use App\Http\Controllers\Api\Vendor\Products\ProductController;
 use App\Http\Controllers\Api\Vendor\Products\VendorOrderController;
+use App\Http\Controllers\Api\Vendor\Profile\WalletController;
 
 
 Route::prefix('vendor')->group(function () {
@@ -51,6 +52,14 @@ Route::prefix('vendor')->group(function () {
             Route::get('order/{order_id}', [VendorOrderController::class, 'showOrder']);
             Route::put('order/{order_id}/status', [VendorOrderController::class, 'updateStatus']);
         
+        // Vendo Wallet
+            Route::get('wallet', [WalletController::class, 'wallet']);
+            Route::get('wallet/summary', [WalletController::class, 'summary']);
+            Route::get('wallet/transactions', [WalletController::class, 'transactions']);
+            Route::post('wallet/request-withdraw', [WalletController::class, 'requestWithdraw']);
+            Route::post('wallet/withdraw-requests', [WalletController::class, 'withdrawRequests']);
+            Route::post('wallet/withdraw-requests/{id}', [WalletController::class, 'withdrawRequestDetails']);
+
         // Notifications
             // Route::get('notifications', [NotificationController::class, 'index']);
             // Route::get('notifications/{id}', [NotificationController::class, 'show']);

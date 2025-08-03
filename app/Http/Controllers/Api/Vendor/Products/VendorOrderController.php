@@ -80,7 +80,7 @@ class VendorOrderController extends Controller
     {
         $validator = Validator::make(
             $request->all(),[
-                'status' => 'required|string|in:pending,accepted,preparing,completed,on_the_way,delivered,cancelled',
+                'status' => 'required|string|in:pending,accepted,preparing,completed,cancelled',
             ]
         );
 
