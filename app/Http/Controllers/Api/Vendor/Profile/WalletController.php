@@ -35,7 +35,7 @@ class WalletController extends Controller
                 'total_refunded' => $wallet->total_refunded,
                 'total_commission' => $wallet->total_commission,
                 'created_at' => $wallet->created_at->toDateTimeString(),
-                'updated_at' => $wallet->updated_at->toDateTimeString(),
+                'last_update' => $wallet->updated_at->toDateTimeString(),
             ],
         ]);
     }
@@ -81,6 +81,43 @@ class WalletController extends Controller
 
         return response()->json([
             'message' => 'Transactions retrieved successfully.',
+            'data' => $transactions,
+        ]);
+    }
+
+    public function filterByTransactionType(Request $request)
+    {
+        $vendor = auth()->user();
+        if (!$vendor) {
+            return response()->json([
+                'message' => 'Vendor not authenticated.',
+            ], 401);
+        }
+
+        $validator = \Validator::make($request->all(), [
+            'type' => 'required|string|in:order_earning,withdraw,order_refund,order_cancellation,order_chargeback,order_payment',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $type = $request->input('type');
+        if (!$type) {
+            return response()->json([
+                'message' => 'Transaction type is required.',
+            ], 422);
+        }
+
+        $transactions = $vendor->wallet->transactions()
+            ->where('type', $type)
+            ->paginate(20);
+
+        return response()->json([
+            'message' => 'Transactions filtered by type retrieved successfully.',
             'data' => $transactions,
         ]);
     }
