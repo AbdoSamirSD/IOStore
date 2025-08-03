@@ -191,7 +191,7 @@ class WalletController extends Controller
             'message' => 'Withdrawal requests retrieved successfully.',
             'data' => [
                 'amount' => $withdrawRequests->pluck('amount'),
-                'date' => $withdrawRequests->pluck('created_at'),
+                'date' => $withdrawRequests->pluck('created_at')->toDateTimeString(),
                 'total_amount' => $withdrawRequests->sum('amount'),
             ],
         ]);
