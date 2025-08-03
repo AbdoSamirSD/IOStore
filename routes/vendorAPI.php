@@ -58,10 +58,10 @@ Route::prefix('vendor')->group(function () {
             Route::get('wallet/transactions', [WalletController::class, 'transactions']);
             Route::get('wallet/transactiontypes', [WalletController::class, 'transactionTypes']);
             Route::get('wallet/transactions/{type}', [WalletController::class, 'filterByTransactionType']);
+            Route::get('wallet/withdraw-requests', [WalletController::class, 'withdrawRequests']);
+            Route::get('wallet/withdraw-requests/{id}', [WalletController::class, 'withdrawRequestDetails']);
             Route::post('wallet/request-withdraw', [WalletController::class, 'requestWithdraw']);
-            Route::post('wallet/withdraw-requests', [WalletController::class, 'withdrawRequests']);
-            Route::post('wallet/withdraw-requests/{id}', [WalletController::class, 'withdrawRequestDetails']);
-
+            
         // Notifications
             // Route::get('notifications', [NotificationController::class, 'index']);
             // Route::get('notifications/{id}', [NotificationController::class, 'show']);
