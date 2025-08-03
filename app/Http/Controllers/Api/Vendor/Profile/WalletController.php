@@ -85,7 +85,7 @@ class WalletController extends Controller
         ]);
     }
 
-    public function filterByTransactionType(Request $request)
+    public function filterByTransactionType(Request $request, $type)
     {
         $vendor = auth()->user();
         if (!$vendor) {
@@ -94,18 +94,6 @@ class WalletController extends Controller
             ], 401);
         }
 
-        $validator = \Validator::make($request->all(), [
-            'type' => 'required|string|in:order_earning,withdraw,order_refund,order_cancellation,order_chargeback,order_payment',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $type = $request->input('type');
         if (!$type) {
             return response()->json([
                 'message' => 'Transaction type is required.',
