@@ -41,7 +41,7 @@ class DashboardController extends Controller
             ->latest()
             ->take(5)
             ->with(['items:id,name,image']) 
-            ->get(['id', 'vendor_id', 'created_at']);
+            ->get(['id', 'vendor_id', 'created_at', 'items']);
 
         $monthsBack = 6;
         $salesByMonth = Order::selectRaw("
