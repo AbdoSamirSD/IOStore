@@ -27,7 +27,7 @@ class DashboardController extends Controller
 
         $productStats = Product::selectRaw("
                 COUNT(CASE WHEN status = 'approved' AND is_active = 'active' THEN 1 END) as active_approved,
-                COUNT(CASE WHEN is_active = 'inactive' THEN 1 END) as inactive,
+                COUNT(CASE WHEN status = 'approved' AND is_active = 'inactive' THEN 1 END) as inactive,
                 COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
                 COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected
             ")
