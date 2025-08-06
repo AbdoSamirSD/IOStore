@@ -48,11 +48,11 @@ class DashboardController extends Controller
                 DATE_FORMAT(created_at, '%M') as month, 
                 SUM(total_cost) as total,
                 MIN(created_at) as first_order_date"
-                )
+            )
             ->where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
             ->where('created_at', '>=', now()->subMonths(value: $monthsBack))
-            ->groupBy(DB::raw("MONTH(created_at)"))
+            ->groupByRaw("MONTH(created_at), DATE_FORMAT(created_at, '%M')")
             ->orderByRaw('MIN(created_at) asc')
             ->get();
 
