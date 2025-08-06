@@ -48,7 +48,7 @@ class DashboardController extends Controller
             ->where('status', 'delivered')
             ->where('created_at', '>=', now()->subMonths(value: $monthsBack))
             ->groupBy(DB::raw("MONTH(created_at)"))
-            ->orderBy(DB::raw("MIN(created_at)"))
+            ->orderByRaw('MIN(created_at) asc')
             ->get();
 
         $labels = $salesByMonth->pluck('month');
