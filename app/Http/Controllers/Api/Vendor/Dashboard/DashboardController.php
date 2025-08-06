@@ -47,8 +47,8 @@ class DashboardController extends Controller
             ->where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
             ->where('created_at', '>=', now()->subMonths(value: $monthsBack))
-            ->groupBy('month')
-            ->orderByRaw("MIN(created_at)")
+            ->groupBy(DB::raw("MONTH(created_at)"))
+            ->orderBy(DB::raw("MIN(created_at)"))
             ->get();
 
         $labels = $salesByMonth->pluck('month');
@@ -56,21 +56,20 @@ class DashboardController extends Controller
 
         $topSellingProducts = OrderItem::select('order_items.product_id', 
                 DB::raw('COUNT(*) as total_sales'),
-                'product_translations.name',
+                'product_translations.name as product_name',
                 'image_items.image_path'    
             )
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->leftJoin('product_translations', function($join) {
-                $join->on('products.id', '=', 'product_translations.product_id')
-                    ->where('product_translations.locale', app()->getLocale());
+            ->join('orders', function ($join) use ($vendor) {
+                $join->on('order_items.order_id', '=', 'orders.id')
+                    ->where('orders.status', 'delivered')
+                    ->where('orders.vendor_id', $vendor->id);
             })
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('product_translations', 'products.id', '=', 'product_translations.product_id')
             ->leftJoin('image_items', function($join) {
                 $join->on('products.id', '=', 'image_items.imageable_id')
-                    ->where('image_items.is_main', 1);
+                    ->where('image_items.imageable_type', Product::class);
             })
-            ->where('orders.status', 'delivered')
-            ->where('products.vendor_id', $vendor->id)
             ->groupBy('order_items.product_id', 'product_translations.name', 'image_items.image_path')
             ->orderByDesc('total_sales')
             ->take(5)
