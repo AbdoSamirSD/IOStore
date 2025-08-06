@@ -19,7 +19,8 @@ class DashboardController extends Controller
         $orderStats = Order::selectRaw("
                 COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered,
                 COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
-                COUNT(CASE WHEN status = 'preparing' THEN 1 END) as pending
+                COUNT(CASE WHEN status = 'preparing' THEN 1 END) as preparing,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending
             ")
             ->where('vendor_id', $vendor->id)
             ->first();
@@ -84,6 +85,7 @@ class DashboardController extends Controller
             'orders' => [
                 'delivered' => $orderStats->delivered,
                 'cancelled' => $orderStats->cancelled,
+                'preparing' => $orderStats->preparing,
                 'pending' => $orderStats->pending,
             ],
             'products' => [
