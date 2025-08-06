@@ -40,8 +40,8 @@ class DashboardController extends Controller
             ->where('status', 'delivered')
             ->latest()
             ->take(5)
-            ->with(['items:id,name,image']) 
-            ->get(['id', 'vendor_id', 'created_at', 'items.*']);
+            ->with(['items.product:id,name,image']) 
+            ->get(['id', 'vendor_id', 'created_at']);
 
         $monthsBack = 6;
         $salesByMonth = Order::selectRaw("
