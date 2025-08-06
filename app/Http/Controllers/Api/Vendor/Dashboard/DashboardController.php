@@ -67,7 +67,7 @@ class DashboardController extends Controller
                 image
             ")
             ->whereHas('order', function ($query) use ($vendor) {
-                $query->where('status', 'delivered')
+                $query//->where('status', 'delivered')
                     ->where('vendor_id', $vendor->id);
             })
             ->groupBy('product_id', 'name', 'image')
