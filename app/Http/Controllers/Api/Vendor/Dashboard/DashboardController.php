@@ -43,7 +43,12 @@ class DashboardController extends Controller
             ->get(['id', 'vendor_id', 'created_at']);
 
         $monthsBack = 6;
-        $salesByMonth = Order::selectRaw("DATE_FORMAT(created_at, '%M') as month, SUM(total_cost) as total")
+        $salesByMonth = Order::selectRaw("
+                MONTH(created_at) as month_number,
+                DATE_FORMAT(created_at, '%M') as month, 
+                SUM(total_cost) as total,
+                MIN(created_at) as first_order_date"
+                )
             ->where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
             ->where('created_at', '>=', now()->subMonths(value: $monthsBack))
