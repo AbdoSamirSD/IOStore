@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ->where('vendor_id', $vendor->id)
             ->first();
 
-        $totalSales = Wallet::where('vendor_id', $vendor->id)->value('total_earnings');
+        $totalSales = Wallet::where('vendor_id', $vendor->id)->value('total_earnings') ?? 0;
 
         $lastFiveDeliveredOrders = Order::where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
@@ -42,10 +42,11 @@ class DashboardController extends Controller
             ->with(['products:id,name,image']) 
             ->get(['id', 'vendor_id', 'created_at']);
 
+        $monthsBack = 6;
         $salesByMonth = Order::selectRaw("DATE_FORMAT(created_at, '%M') as month, SUM(total_cost) as total")
             ->where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
-            ->where('created_at', '>=', now()->subMonths(6))
+            ->where('created_at', '>=', now()->subMonths(value: $monthsBack))
             ->groupBy('month')
             ->orderByRaw("MIN(created_at)")
             ->get();
@@ -55,14 +56,22 @@ class DashboardController extends Controller
 
         $topSellingProducts = OrderItem::select('order_items.product_id', 
                 DB::raw('COUNT(*) as total_sales'),
-                'products.name',
-                'products.image'    
+                'product_translations.name',
+                'image_items.image_path'    
             )
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('product_translations', function($join) {
+                $join->on('products.id', '=', 'product_translations.product_id')
+                    ->where('product_translations.locale', app()->getLocale());
+            })
+            ->leftJoin('image_items', function($join) {
+                $join->on('products.id', '=', 'image_items.product_id')
+                    ->where('image_items.is_main', 1);
+            })
             ->where('orders.status', 'delivered')
             ->where('products.vendor_id', $vendor->id)
-            ->groupBy('order_items.product_id', 'products.name', 'products.image')
+            ->groupBy('order_items.product_id', 'product_translations.name', 'image_items.image_path')
             ->orderByDesc('total_sales')
             ->take(5)
             ->get();
