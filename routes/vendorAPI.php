@@ -48,9 +48,9 @@ Route::prefix('vendor')->group(function () {
             Route::get('orders/', [VendorOrderController::class, 'index']);
             Route::get('orders/getallstatuses', [VendorOrderController::class, 'getAllStatuses']);
             Route::get('orders/statistics', [VendorOrderController::class, 'statistics']);
-            Route::get('order/status/{status}', [VendorOrderController::class, 'filterByStatus']);
-            Route::get('order/{order_id}', [VendorOrderController::class, 'showOrder']);
-            Route::put('order/{order_id}/status', [VendorOrderController::class, 'updateStatus']);
+            Route::get('orders/status/{status}', [VendorOrderController::class, 'filterByStatus']);
+            Route::get('orders/{order_id}', [VendorOrderController::class, 'showOrder']);
+            Route::put('orders/{order_id}/status', [VendorOrderController::class, 'updateStatus']);
         
         // Vendo Wallet
             Route::get('wallet', [WalletController::class, 'wallet']);
