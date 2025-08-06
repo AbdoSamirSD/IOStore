@@ -42,7 +42,7 @@ class DashboardController extends Controller
             ->with(['products:id,name,image']) 
             ->get(['id', 'vendor_id', 'created_at']);
 
-        $salesByMonth = Order::selectRaw("DATE_FORMAT(created_at, '%M') as month, SUM(total_price) as total")
+        $salesByMonth = Order::selectRaw("DATE_FORMAT(created_at, '%M') as month, SUM(total_cost) as total")
             ->where('vendor_id', $vendor->id)
             ->where('status', 'delivered')
             ->where('created_at', '>=', now()->subMonths(6))
@@ -66,7 +66,7 @@ class DashboardController extends Controller
             ->orderByDesc('total_sales')
             ->take(5)
             ->get();
-            
+
         return response()->json([
             'orders' => [
                 'delivered' => $orderStats->delivered,
