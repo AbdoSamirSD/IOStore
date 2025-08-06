@@ -66,7 +66,7 @@ class DashboardController extends Controller
                     ->where('product_translations.locale', app()->getLocale());
             })
             ->leftJoin('image_items', function($join) {
-                $join->on('products.id', '=', 'image_items.product_id')
+                $join->on('products.id', '=', 'image_items.imageable_id')
                     ->where('image_items.is_main', 1);
             })
             ->where('orders.status', 'delivered')
