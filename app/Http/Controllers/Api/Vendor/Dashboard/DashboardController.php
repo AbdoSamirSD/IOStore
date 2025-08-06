@@ -60,24 +60,18 @@ class DashboardController extends Controller
         $labels = $salesByMonth->pluck('month');
         $data = $salesByMonth->pluck('total');
 
-        $topSellingProducts = OrderItem::select('order_items.product_id', 
-                DB::raw('COUNT(*) as total_sales'),
-                'product_translations.name as product_name',
-                'image_items.image_path'    
-            )
-            ->join('orders', function ($join) use ($vendor) {
-                $join->on('order_items.order_id', '=', 'orders.id')
-                    ->where('orders.status', 'delivered')
-                    ->where('orders.vendor_id', $vendor->id);
+        $topSellingProducts = OrderItem::selectRaw("
+                product_id,
+                SUM(quantity) as total_quantity,
+                name,
+                image
+            ")
+            ->whereHas('order', function ($query) use ($vendor) {
+                $query->where('status', 'delivered')
+                    ->where('vendor_id', $vendor->id);
             })
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->leftJoin('product_translations', 'products.id', '=', 'product_translations.product_id')
-            ->leftJoin('image_items', function($join) {
-                $join->on('products.id', '=', 'image_items.imageable_id')
-                    ->where('image_items.imageable_type', Product::class);
-            })
-            ->groupBy('order_items.product_id', 'product_translations.name', 'image_items.image_path')
-            ->orderByDesc('total_sales')
+            ->groupBy('product_id', 'name', 'image')
+            ->orderBy('total_quantity', 'desc')
             ->take(5)
             ->get();
 
