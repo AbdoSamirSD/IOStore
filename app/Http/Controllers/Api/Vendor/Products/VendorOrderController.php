@@ -166,48 +166,6 @@ class VendorOrderController extends Controller
         ]);
     }
 
-    public function statistics(Request $request)
-    {
-        $vendor = auth()->user();
-        if (!$vendor) {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 401);
-        }
-
-        $query = Order::where('vendor_id', $vendor->id)
-        ->with('items');
-
-        if ($request->has(['from', 'to'])){
-
-            $from = $request->input('from', now()->startOfMonth());
-            $to = $request->input('to', now()->endOfMonth());
-    
-            $query->whereBetween('created_at', [$from, $to]);
-
-
-        }
-
-        $orders = $query->get();
-
-        $statistics = $orders->groupBy('status')->map(function ($ordersGroup) {
-            $count = $ordersGroup->count();
-            $totalAmount = $ordersGroup->flatMap->items->sum('price');
-            $totalQuantity = $ordersGroup->flatMap->items->sum('quantity');
-
-            return[
-                'count' => $count,
-                'total_amount' => $totalAmount,
-                'total_quantity' => $totalQuantity,
-            ];
-        })->toArray();
-        
-        return response()->json([
-            'message' => 'Order statistics retrieved successfully.',
-            'data' => $statistics,
-        ]);
-    }
-
     public function getAllStatuses()
     {
         $type = DB::select("SHOW COLUMNS FROM orders WHERE Field = 'status'");
