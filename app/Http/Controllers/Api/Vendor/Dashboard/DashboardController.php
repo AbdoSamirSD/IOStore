@@ -57,9 +57,6 @@ class DashboardController extends Controller
             ->orderByRaw('MIN(created_at) asc')
             ->get();
 
-        $labels = $salesByMonth->pluck('month');
-        $data = $salesByMonth->pluck('total');
-
         $topSellingProducts = OrderItem::selectRaw("
                 product_id,
                 SUM(quantity) as total_quantity,
@@ -92,10 +89,11 @@ class DashboardController extends Controller
                 'total_sales' => $totalSales,
             ],
             'last_five_orders' => $lastFiveDeliveredOrders,
-            'sales_chart' => [
-                'labels' => $labels,
-                'data' => $data,
-            ],
+            'sales_chart' => $salesByMonth->map(fn($row) => [
+                'month' => $row->month,
+                'total' => $row->total,
+                'first_order_date' => $row->first_order_date,
+            ]),
             'top_products' => $topSellingProducts,
         ]);
     }
