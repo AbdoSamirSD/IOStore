@@ -158,7 +158,7 @@ class VendorOrderController extends Controller
         $filteredOrders = Order::with('items')
             ->where('vendor_id', $vendor->id)
             ->where('status', $status)
-            ->paginte(20);
+            ->paginate(20);
 
         return response()->json([
             'message' => "Orders filtered by status: {$status}.",
