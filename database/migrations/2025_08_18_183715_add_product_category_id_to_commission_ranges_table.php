@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('commission_plans', function (Blueprint $table) {
-            $table->foreignId('vendor_id')->constrained('vendors')->onDelete('cascade')->after('id');
-            $table->string('plan_name')->nullable()->after('product_category_id');
+        Schema::table('commission_ranges', function (Blueprint $table) {
+            //
+            $table->foreignId('product_category_id')->nullable()->constrained('main_categories')->onDelete('set null');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('commission_plans', function (Blueprint $table) {
+        Schema::table('commission_ranges', function (Blueprint $table) {
             //
         });
     }
