@@ -168,121 +168,82 @@ class VendorController extends Controller
     }
 
 
-    // public function setCommissionPlans($id, Request $request)
-    // {
-    //     $admin = auth('admin')->user();
-    //     if (!$admin) {
-    //         return response()->json(['error' => 'Unauthorized'], 401);
-    //     }
-
-    //     $vendor = Vendor::with(['commissionPlans'])->find($id);
-    //     if (!$vendor) {
-    //         return response()->json(['error' => 'Vendor not found'], 404);
-    //     }
-
-    //     $validator = Validator::make($request->all(), [
-    //         'commission_type' => 'required|string|in:variable,fixed',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['error' => $validator->errors()], 422);
-    //     }
-
-    //     $vendor->commissionPlans()->update([
-    //         'commission_type' => $request->input('commission_type'),
-    //     ]);
-
-    //     return response()->json([
-    //         'message' => 'Vendor commission plans updated successfully',
-    //         'vendor' => [
-    //             'id' => $vendor->id,
-    //             'name' => $vendor->full_name,
-    //             'commission_plans' => $vendor->commissionPlans->map(function ($plan) {
-    //                 return [
-    //                     'id' => $plan->id,
-    //                     'type' => $plan->commission_type,
-    //                 ];
-    //             }),
-    //         ]
-    //     ]);
-    // }
-
-    public function updateCommission(Request $request, $id){
+    public function addCommissionPlans($id, Request $request)
+    {
         $admin = auth('admin')->user();
         if (!$admin) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $commissionPlan = CommissionPlan::with(['ranges'])->find($id);
-        if (!$commissionPlan) {
-            return response()->json(['error' => 'Commission plan not found'], 404);
+        $vendor = Vendor::find($id);
+        if (!$vendor) {
+            return response()->json(['error' => 'Vendor not found'], 404);
         }
 
         $validator = Validator::make($request->all(), [
-            'vendor_id' => 'required|exists:vendors,id',
             'commission_type' => 'required|string|in:fixed,variable',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
+        if ($validator->fails()){
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $vendor = Vendor::find($request->input('vendor_id'));
-        $commission_type = $request->input('commission_type');
-        if ($commission_type === 'fixed'){
+        if ($request->input('commission_type') === 'fixed') {
             $validator = Validator::make($request->all(), [
-                'fixed_percentage' => 'required|numeric|min:5',
+                'fixed_percentage' => 'required|numeric|min:0|max:100',
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()], 422);
+                return response()->json(['errors' => $validator->errors()], 422);
             }
 
+            $commissionPlan = new CommissionPlan();
+            $commissionPlan->vendor_id = $vendor->id;
+            $commissionPlan->commission_type = 'fixed';
             $commissionPlan->fixed_percentage = $request->input('fixed_percentage');
             $commissionPlan->save();
 
             return response()->json([
-                'message' => 'Vendor commission updated successfully',
-                'vendor' => [
-                    'id' => $vendor->id,
-                    'name' => $vendor->full_name,
-                    'store_name' => $vendor->store_name,
-                    'commission_type' => $vendor->commissionPlans->commission_type,
-                    'commission' => $vendor->commissionPlans->fixed_percentage,
-                ]
+                'message' => 'Fixed commission plan added successfully',
+                'commission_plan' => $commissionPlan
             ]);
-        } elseif ($vendor->commissionPlans->commission_type === 'variable') {
-            // Handle variable commission update
+        } else {
             $validator = Validator::make($request->all(), [
-                'product_category_id' => 'required|exists:main_categories,id',
-                'min_value' => 'required|numeric|min:0',
-                'max_value' => 'required|numeric|min:0|gt:min_value',
-                'percentage' => 'required|numeric|min:0|gt:max_value',
+                'ranges' => 'required|array',
+                'ranges.*.plan_name' => 'required|string|max:255',
+                'ranges.*.product_category_id' => 'required|exists:main_categories,id',
+                'ranges.*.min_value' => 'required|numeric|min:0',
+                'ranges.*.max_value' => 'required|numeric|min:0',
+                'ranges.*.percentage' => 'required|numeric|min:0|max:100',
             ]);
+
             if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()], 422);
+                return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $vendor->commissionPlans->ranges->product_category_id = $request->input('product_category_id');
-            $vendor->commissionPlans->ranges->min_value = $request->input('min_value');
-            $vendor->commissionPlans->ranges->max_value = $request->input('max_value');
-            $vendor->commissionPlans->ranges->percentage = $request->input('percentage');
-            $vendor->commissionPlans->save();
+            $commissionPlan = new CommissionPlan();
+            $commissionPlan->vendor_id = $vendor->id;
+            $commissionPlan->commission_type = 'variable';
+            $commissionPlan->save();
+
+            foreach ($request->input('ranges') as $range) {
+                if ($range['min_value'] >= $range['max_value']) {
+                    return response()->json(['error' => 'max_value must be greater than min_value'], 422);
+                }
+                $commissionPlan->ranges()->create([
+                    'plan_name' => $range['plan_name'],
+                    'product_category_id' => $range['product_category_id'],
+                    'min_value' => $range['min_value'],
+                    'max_value' => $range['max_value'],
+                    'percentage' => $range['percentage'],
+                ]);
+            }
+
 
             return response()->json([
-                'message' => 'Vendor commission updated successfully',
-                'vendor' => [
-                    'id' => $vendor->id,
-                    'name' => $vendor->full_name,
-                    'store_name' => $vendor->store_name,
-                    'commission_type' => $vendor->commissionPlans->commission_type,
-                    'commission' => $vendor->commissionPlans->ranges,
-                ]
+                'message' => 'Commission plans added successfully',
+                'commission_plans' => $commissionPlan->load('ranges')
             ]);
         }
-    }
-
-    public function addCommissionPlan(){
-
     }
 }

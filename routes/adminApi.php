@@ -47,8 +47,9 @@ Route::group([
         Route::delete('/delete/{id}', [VendorController::class, 'destroy']);
         Route::get('/pending', [VendorController::class, 'pendingVendors']);
         Route::post('/updatestatus/{id}', [VendorController::class, 'updateStatus']);
-        Route::post('/commissionplans/{id}', [VendorController::class, 'setCommissionPlans']);
-        Route::post('/commission/{id}', [VendorController::class, 'updateCommission']);
+        Route::post('{id}/commissionplans', [VendorController::class, 'addCommissionPlans']);
+        Route::delete('{id}/commissionplans/{planId}', [VendorController::class, 'removeCommissionPlans']);
+        Route::put('{id}/commissionplans/{planId}', [VendorController::class, 'updateCommissionPlans']);
     });
 
     Route::group(['prefix' => 'report'], function () {
