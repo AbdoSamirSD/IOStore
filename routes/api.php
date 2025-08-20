@@ -25,10 +25,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::options('{any}', function () {
-    return response()->json([], 200);
-})->where('any', '.*');
-
 require __DIR__ . '/customerApi.php';
 
 require __DIR__ . '/adminApi.php';
+
+Route::options('{any}', function () {
+    return response()->json([], 200);
+})->where('any', '.*');

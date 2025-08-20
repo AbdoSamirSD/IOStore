@@ -48,7 +48,7 @@ Route::group([
         Route::get('/pending', [VendorController::class, 'pendingVendors']);
         Route::post('/updatestatus/{id}', [VendorController::class, 'updateStatus']);
         Route::post('{id}/commissionplans', [VendorController::class, 'addCommissionPlans']);
-        Route::delete('{id}/commissionplans/{planId}', [VendorController::class, 'removeCommissionPlans']);
+        Route::delete('{id}/commissionplans/{planId}', [VendorController::class, 'deleteCommissionPlan']);
         Route::put('{id}/commissionplans/{planId}', [VendorController::class, 'updateCommissionPlans']);
     });
 

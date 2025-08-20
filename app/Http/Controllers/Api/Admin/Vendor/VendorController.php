@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\Admin\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\CommissionPlan;
+use App\Models\CommissionRange;
 use Illuminate\Http\Request;
 use App\Models\Vendor;
 use Validator;
+use DB;
 
 class VendorController extends Controller
 {
@@ -18,7 +20,7 @@ class VendorController extends Controller
         }
 
         // Fetch vendors from the database
-        $vendors = Vendor::all();
+        $vendors = Vendor::paginate(20);
         $vendors->getCollection()->transform(function ($vendor) {
             return [
                 'id' => $vendor->id,
@@ -27,11 +29,17 @@ class VendorController extends Controller
                 'profile_image' => $vendor->profile_image,
             ];
         });
-        $count = $vendors->count();
+        $count = $vendors->total();
         return response()->json(
             [
                 'count' => $count,
-                'vendors' => $vendors,
+                'vendors' => $vendors->items(),
+                'pagination' => [
+                    'total' => $count,
+                    'current_page' => $vendors->currentPage(),
+                    'last_page' => $vendors->lastPage(),
+                    'per_page' => $vendors->perPage(),
+                ]
             ]);
     }
 
@@ -159,7 +167,7 @@ class VendorController extends Controller
         if ($vendor->orders()->count() > 0) {
             $vendor->is_active = 'inactive';
             $vendor->save();
-            return response()->json(['error' => 'Vendor has associated orders and cannot be deleted. he is inactive now'], 400);
+            return response()->json(['error' => 'Vendor has associated orders and cannot be deleted. he is inactive now'], 409);
         }
 
         $vendor->delete();
@@ -175,8 +183,7 @@ class VendorController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $vendor = Vendor::find($id);
-        if (!$vendor) {
+        if (!Vendor::whereKey($id)->exists()) {
             return response()->json(['error' => 'Vendor not found'], 404);
         }
 
@@ -198,7 +205,7 @@ class VendorController extends Controller
             }
 
             $commissionPlan = new CommissionPlan();
-            $commissionPlan->vendor_id = $vendor->id;
+            $commissionPlan->vendor_id = $id;
             $commissionPlan->commission_type = 'fixed';
             $commissionPlan->fixed_percentage = $request->input('fixed_percentage');
             $commissionPlan->save();
@@ -222,8 +229,9 @@ class VendorController extends Controller
             }
 
             $commissionPlan = new CommissionPlan();
-            $commissionPlan->vendor_id = $vendor->id;
+            $commissionPlan->vendor_id = $id;
             $commissionPlan->commission_type = 'variable';
+            $commissionPlan->fixed_percentage = null;
             $commissionPlan->save();
 
             foreach ($request->input('ranges') as $range) {
@@ -245,5 +253,114 @@ class VendorController extends Controller
                 'commission_plans' => $commissionPlan->load('ranges')
             ]);
         }
+    }
+
+    public function updateCommissionPlans($id, $planId, Request $request)
+    {
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (!Vendor::whereKey($id)->exists()) {
+            return response()->json(['error' => 'Vendor not found'], 404);
+        }
+
+        $commissionPlan = CommissionPlan::with('ranges')->where('vendor_id', $id)->find($planId);
+        if (!$commissionPlan) {
+            return response()->json(['error' => 'Commission plan not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'commission_type' => 'required|string|in:fixed,variable',
+        ]);
+
+        if ($request->input('commission_type') === 'fixed') {
+            $validator = Validator::make($request->all(), [
+                'fixed_percentage' => 'required|numeric|min:0|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $commissionPlan->commission_type = 'fixed';
+            $commissionPlan->fixed_percentage = $request->input('fixed_percentage');
+            $commissionPlan->save();
+
+            return response()->json([
+                'message' => 'Fixed commission plan updated successfully',
+                'data' => $commissionPlan
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'ranges' => 'required|array',
+                'ranges.*.plan_name' => 'required|string|max:255',
+                'ranges.*.product_category_id' => 'required|exists:main_categories,id',
+                'ranges.*.min_value' => 'required|numeric|min:0',
+                'ranges.*.max_value' => 'required|numeric|min:0',
+                'ranges.*.percentage' => 'required|numeric|min:0|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            foreach ($request->input('ranges') as $range) {
+                if ($range['min_value'] >= $range['max_value']) {
+                    return response()->json(['error' => 'max_value must be greater than min_value'], 422);
+                }
+            }
+
+            DB::transaction(function () use ($commissionPlan, $request) {
+                $commissionPlan->update([
+                    'commission_type' => 'variable',
+                    'fixed_percentage' => null
+                ]);
+                $commissionPlan->ranges()->delete();
+
+                $rangesData = [];
+                foreach ($request->input('ranges') as $range) {
+                    $rangesData[] = [
+                        'commission_plan_id' => $commissionPlan->id,
+                        'plan_name' => $range['plan_name'],
+                        'product_category_id' => $range['product_category_id'],
+                        'min_value' => $range['min_value'],
+                        'max_value' => $range['max_value'],
+                        'percentage' => $range['percentage'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }
+
+                CommissionRange::insert($rangesData);
+            });
+
+            return response()->json([
+                'message' => 'Commission plans updated successfully',
+                'data' => $commissionPlan->load('ranges')
+            ]);
+        }
+    }
+
+    public function deleteCommissionPlan($id, $planId)
+    {
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if (!Vendor::where('id', $id)->exists()) {
+            return response()->json(['error' => 'Vendor not found'], 404);
+        }
+
+        $commissionPlan = CommissionPlan::where('vendor_id', $id)->find($planId);
+        if (!$commissionPlan) {
+            return response()->json(['error' => 'Commission plan not found'], 404);
+        }
+
+        $commissionPlan->delete();
+
+        return response()->json(['message' => 'Commission plan deleted successfully']);
     }
 }
