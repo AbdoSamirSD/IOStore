@@ -178,6 +178,10 @@ class VendorController extends Controller
             return response()->json(['error' => 'Vendor has associated orders and cannot be deleted. he is inactive now'], 409);
         }
 
+        if ($vendor->commissionPlans()->exists()) {
+            $vendor->commissionPlans()->delete();
+        }
+
         $vendor->delete();
 
         return response()->json(['message' => 'Vendor deleted successfully']);
