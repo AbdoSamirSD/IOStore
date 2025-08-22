@@ -22,4 +22,9 @@ class Specification extends Model
     {
         return $this->hasMany(SpecificationValue::class);
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_specification_values');
+    }
 }

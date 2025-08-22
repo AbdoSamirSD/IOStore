@@ -6,64 +6,104 @@ use App\Http\Controllers\Controller;
 use App\Models\MainCategory;
 use Illuminate\Http\Request;
 use App\Traits\FileUploadTrait;
+use Validator;
 
 class MainCategoriesController extends Controller
 {
     use FileUploadTrait;
 
-    public function index(Request $request)
+    public function index()
     {
-        $mainCategories = MainCategory::whereTranslationLike('name', '%' . $request->name . '%')->latest()->paginate(perPage: 50);
-        return response()->json(['mainCategories' => $mainCategories], 200);
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['message' => "Unauthorized"] , 401);
+        }
+        $mainCategories = MainCategory::latest()->paginate(perPage: 20);
+        $count = $mainCategories->total();
+        return response()->json([
+            'message' => 'Main Categories retrieved successfully',
+            'mainCategories' => $mainCategories,
+            'count' => $count
+        ], 200);
     }
 
     public function store(Request $request)
     {
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['message' => "Unauthorized"] , 401);
+        }
 
-        $data = $request->validate([
-            'name' => 'required|unique:main_category_translations,name',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10048',
+       $validator = Validator::make($request->all(), [
+           'name' => 'required|string|max:255|unique:main_category_translations,name',
+           'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+       ]);
 
-        ]);
+       if ($validator->fails()) {
+           return response()->json(['errors' => $validator->errors()], 422);
+       }
 
         if ($request->hasFile('icon')) {
             $data['icon'] = $this->uploadFile($request, 'icon', path: '/uploads/main_categories');
         }
-        $mainCategory =   MainCategory::create([
-            'ar' => ['name' => $request->name],
+        $mainCategory = MainCategory::create([
             'en' => ['name' => $request->name],
             'icon' => $data['icon'] ?? null
-        ]);
-
-
-
-        return response()->json(['message' => __('site.success'), 'mainCategory' => $mainCategory], 200);
+        ])->load(['translations']
+        );
+        return response()->json(['message' => __('Main Category created successfully'), 'mainCategory' => $mainCategory], 200);
     }
 
-    public function update(Request $request, MainCategory $mainCategory)
+    public function update(Request $request, $mainCategory)
     {
-        $data = $request->validate([
-            'name' => 'required|unique:main_category_translations,name,' . $mainCategory->id . ',main_category_id',
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['message' => "Unauthorized"] , 401);
+        }
+
+        $mainCategory = MainCategory::find($mainCategory);
+        if (!$mainCategory) {
+            return response()->json(['message' => 'Main Category not found'], 404);
+        }
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:main_category_translations,name,' . $mainCategory->id . ',main_category_id',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10048',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
         if ($request->hasFile('icon')) {
             $data['icon'] = $this->uploadFile($request, 'icon', path: '/uploads/main_categories');
         }
         $mainCategory->update([
-            'ar' => ['name' => $request->name],
             'en' => ['name' => $request->name],
             'icon' => $data['icon'] ?? $mainCategory->icon
         ]);
         return response()->json([
-            'message' => __('site.success'),
+            'message' => __('Main Category updated successfully'),
             'mainCategory' => $mainCategory
         ], 200);
     }
 
-    public function destroy(MainCategory $mainCategory)
+    public function destroy($mainCategories)
     {
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            return response()->json(['message' => "Unauthorized"] , 401);
+        }
+
+        $mainCategory = MainCategory::find($mainCategories);
+        if (!$mainCategory) {
+            return response()->json(['message' => 'Main Category not found'], 404);
+        }
+        if ($mainCategory->icon) {
+            $this->deleteFile($mainCategory->icon);
+        }
+
         $mainCategory->delete();
-        return response()->json(['message' => __('site.success')], 200);
+
+        return response()->json(['message' => __('Main Category deleted successfully')], 200);
     }
 }

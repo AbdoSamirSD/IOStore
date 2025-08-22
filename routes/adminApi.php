@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Other\AppSettingsController;
 use App\Http\Controllers\Api\Admin\Auth\AdminAuthController;
 use App\Http\Controllers\Api\Admin\Vendor\VendorController;
+use App\Http\Controllers\Api\Admin\Specifications\SpecificationsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -51,7 +52,40 @@ Route::group([
         Route::delete('{id}/commissionplans/{planId}', [VendorController::class, 'deleteCommissionPlan']);
         Route::put('{id}/commissionplans/{planId}', [VendorController::class, 'updateCommissionPlans']);
     });
+    
+    // main categories
+    Route::group(['prefix' => 'maincategories'], function () {
 
+        Route::get('/', [MainCategoriesController::class, 'index']);
+        Route::post('/', [MainCategoriesController::class, 'store']);
+        Route::post('/update/{mainCategory}', [MainCategoriesController::class, 'update']);
+        Route::delete('/{mainCategory}', [MainCategoriesController::class, 'destroy']);
+    });
+
+    // specifications routes
+    Route::group(['prefix' => 'specifications'], function () {
+        Route::get('/', [SpecificationsController::class, 'index']);
+        Route::post('/', [SpecificationsController::class, 'store']);
+        Route::post('/update/{id}', [SpecificationsController::class, 'update']);
+        Route::delete('/{id}', [SpecificationsController::class, 'destroy']);
+
+        Route::group(['prefix'=> 'values'], function () {
+            Route::get('/{specificationId}', [SpecificationsController::class, 'indexValues']);
+            Route::post('/{specificationId}', [SpecificationsController::class, 'storeValues']);
+            Route::put('/{specificationId}', [SpecificationsController::class, 'updateValues']);
+            Route::delete('/{valueId}', [SpecificationsController::class, 'destroyValues']);
+            Route::delete('/delete-all/{specificationId}', [SpecificationsController::class, 'destroyAllValues']);
+        });
+        Route::group(['prefix'=> 'category'], function () {
+            Route::get('/{categoryId}', [SpecificationsController::class, 'categorySpecifications']);
+            Route::post('/{categoryId}', [SpecificationsController::class, 'addCategorySpecifications']);
+            Route::put('/{categoryId}', [SpecificationsController::class, 'updateCategorySpecifications']);
+            Route::delete('/{categoryId}', [SpecificationsController::class, 'destroyAllCategorySpecifications']);
+            Route::delete('/{categoryId}/{specificationId}', [SpecificationsController::class, 'destroyCategorySpecifications']);
+        });
+    });
+
+    // reports
     Route::group(['prefix' => 'report'], function () {
         Route::get('/', [ReportController::class, 'index']);
         Route::get('total-orders-revenue', [ReportController::class, 'totalOrdersAndRevenue']);
@@ -60,14 +94,6 @@ Route::group([
         Route::get('discount-usage', [ReportController::class, 'discountUsage']);
     });
 
-    // main categories
-    Route::group(['prefix' => 'main-categories'], function () {
-
-        Route::get('/', [MainCategoriesController::class, 'index']);
-        Route::post('/', [MainCategoriesController::class, 'store']);
-        Route::put('/{mainCategory}', [MainCategoriesController::class, 'update']);
-        Route::delete('/{mainCategory}', [MainCategoriesController::class, 'destroy']);
-    });
 
     // banners
     Route::group(['prefix' => 'banners'], function () {
