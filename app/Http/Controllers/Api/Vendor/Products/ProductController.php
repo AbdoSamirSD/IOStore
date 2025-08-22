@@ -168,9 +168,24 @@ class ProductController extends Controller
             }
         }
 
+        $showProduct = $product->load(['translations', 'images', 'specificationsValues.specification']);
         return response()->json([
             'message' => 'Product created successfully.',
-            'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
+            'data' => [
+                'id' => $showProduct->id,
+                'name' => $showProduct->translations->firstWhere('locale', 'en')->name,
+                'description' => $showProduct->translations->firstWhere('locale', 'en')->description,
+                'price' => $showProduct->price,
+                'discount' => $showProduct->discount,
+                'stock' => $showProduct->stock,
+                'images' => $showProduct->images,
+                'specifications' => $showProduct->specificationsValues->map(function ($specValue) {
+                    return [
+                        'name' => $specValue->specification->name,
+                        'value' => $specValue->value,
+                    ];
+                }),
+            ],
         ]);
     }
 
