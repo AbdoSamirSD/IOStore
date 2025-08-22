@@ -12,9 +12,13 @@ class CategoryController extends Controller
     {
         $categories = MainCategory::get();
         return response()->json([
-            'status' => true,
             'message' => 'Categories retrieved successfully',
-            'data' => $categories
+            'data' => $categories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ];
+            })
         ]);
     }
 

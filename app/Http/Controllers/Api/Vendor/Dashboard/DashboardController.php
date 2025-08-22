@@ -14,7 +14,23 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $vendor = auth()->user();
+        $vendor = auth('vendor')->user();
+
+        if (!$vendor) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        if ($vendor->is_active === 'pending') {
+            return response()->json([
+                'message' => __('waiting admin to approve your account'),
+            ], 403);
+        }
+
+        if ($vendor->is_active === 'inactive') {
+            return response()->json([
+                'message' => __('Your account is inactive'),
+            ], 403);
+        }
 
         $orderStats = Order::selectRaw("
                 COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered,

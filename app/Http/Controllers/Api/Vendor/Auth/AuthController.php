@@ -35,6 +35,12 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if ($vendor->is_active == 'inactive') {
+            return response()->json([
+                'message' => __('Your account is inactive'),
+            ], 403);
+        }
+
         $token = $vendor->createToken($request->userAgent())->plainTextToken;
         return response()->json([
             'message' => __('login successfully'),
