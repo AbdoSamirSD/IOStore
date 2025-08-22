@@ -182,6 +182,10 @@ class VendorController extends Controller
             $vendor->commissionPlans()->delete();
         }
 
+        if ($vendor->products()->exists()) {
+            $vendor->products()->delete();
+        }
+
         $vendor->delete();
 
         return response()->json(['message' => 'Vendor deleted successfully']);
