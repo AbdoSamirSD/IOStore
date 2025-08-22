@@ -31,6 +31,7 @@ class Vendor extends Authenticatable
         'status',
         'type',
         'commission_value',
+        'is_active'
     ];
 
     protected $hidden = [

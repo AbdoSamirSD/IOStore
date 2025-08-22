@@ -51,7 +51,18 @@ class RegisterController extends Controller
         
         return response()->json([
             'message' => __('Rigester Successfully'),
-            'vendor' => $vendor,
+            'vendor' => [
+                'id' => $vendor->id,
+                'full_name' => $vendor->full_name,
+                'store_name' => $vendor->store_name,
+                'email' => $vendor->email,
+                'phone' => $vendor->phone,
+                'address' => $vendor->address,
+                'profile_image' => $vendor->profile_image,
+                'commercial_register' => $vendor->commercial_register,
+                'is_active' => $vendor->is_active,
+                'status' => $vendor->status,
+            ]
         ], 201);
     }
 }
