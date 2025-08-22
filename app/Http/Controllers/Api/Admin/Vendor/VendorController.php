@@ -228,7 +228,12 @@ class VendorController extends Controller
 
             return response()->json([
                 'message' => 'Fixed commission plan added successfully',
-                'commission_plan' => $commissionPlan
+                'commission_plan' => [
+                    'id' => $commissionPlan->id,
+                    'vendor_id' => $commissionPlan->vendor_id,
+                    'commission_type' => $commissionPlan->commission_type,
+                    'fixed_percentage' => $commissionPlan->fixed_percentage,
+                ]
             ]);
         } else {
             $validator = Validator::make($request->all(), [
@@ -247,7 +252,7 @@ class VendorController extends Controller
             $commissionPlan = new CommissionPlan();
             $commissionPlan->vendor_id = $id;
             $commissionPlan->commission_type = 'variable';
-            $commissionPlan->fixed_percentage = null;
+            $commissionPlan->fixed_percentage = 0;
             $commissionPlan->save();
 
             foreach ($request->input('ranges') as $range) {
