@@ -15,6 +15,7 @@ class CommissionRange extends Model
         'min_value',
         'max_value',
         'percentage',
+        'product_category_id'
     ];
 
     public function commissionPlan()
