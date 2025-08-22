@@ -170,7 +170,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Product created successfully.',
-            // 'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
+            'data' => $product->load(['translations', 'images', 'specificationsValues.specification']),
         ]);
     }
 
