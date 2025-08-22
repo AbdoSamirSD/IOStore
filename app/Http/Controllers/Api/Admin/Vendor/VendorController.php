@@ -137,6 +137,14 @@ class VendorController extends Controller
             return response()->json(['error' => 'Vendor not found'], 404);
         }
 
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string|in:active,inactive,pending',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         $status = $request->input('status');
         $vendor->is_active = $status;
         $vendor->save();
