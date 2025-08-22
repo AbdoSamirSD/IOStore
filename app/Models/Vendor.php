@@ -59,7 +59,7 @@ class Vendor extends Authenticatable
     }
 
     public function commissionPlans(){
-        return $this->hasMany(CommissionPlan::class);
+        return $this->hasMany(CommissionPlan::class, 'vendor_id', 'id');
     }
 
     public function wallet()

@@ -16,7 +16,7 @@ class CommissionPlan extends Model
     ];
 
     public function vendor(){
-        return $this->belongsTo(Vendor::class);
+        return $this->belongsTo(Vendor::class, 'vendor_id', 'id');
     }
 
     public function maincategory(){
