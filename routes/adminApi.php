@@ -86,12 +86,8 @@ Route::group([
     });
 
     // reports
-    Route::group(['prefix' => 'report'], function () {
+    Route::group(['prefix' => 'statistics'], function () {
         Route::get('/', [ReportController::class, 'index']);
-        Route::get('total-orders-revenue', [ReportController::class, 'totalOrdersAndRevenue']);
-        Route::get('order-status-breakdown', [ReportController::class, 'orderStatusBreakdown']);
-        Route::get('top-selling-products', [ReportController::class, 'topSellingProducts']);
-        Route::get('discount-usage', [ReportController::class, 'discountUsage']);
     });
 
 
