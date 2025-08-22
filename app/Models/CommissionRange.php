@@ -11,11 +11,11 @@ class CommissionRange extends Model
 
     protected $fillable = [
         'plan_name',
+        'product_category_id',
         'commission_plan_id',
         'min_value',
         'max_value',
         'percentage',
-        'product_category_id'
     ];
 
     public function commissionPlan()
