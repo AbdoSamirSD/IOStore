@@ -4,12 +4,8 @@ namespace App\Http\Controllers\Api\Vendor\Products;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\MainCategory;
-use App\Models\Product;
 use App\Models\Specification;
-use App\Models\ImageItem;
 use Validator;
-use App\Models\SpecificationValue;
 use App\Models\Order;
 
 class ProductController extends Controller
